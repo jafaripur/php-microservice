@@ -7,7 +7,7 @@ RUN apk update && apk upgrade && echo "UTC" > /etc/timezone \
 	&& apk add --no-cache autoconf gcc binutils binutils-dev g++ libtool make \
 	libmcrypt-dev rabbitmq-c-dev ${PHPIZE_DEPS} \
 	&& docker-php-source extract \
-	&& docker-php-ext-install bcmath pcntl sockets \
+	&& docker-php-ext-install bcmath pcntl \
 	&& pecl install amqp \
 	&& docker-php-ext-enable amqp \
 	&& docker-php-source delete \
@@ -18,12 +18,6 @@ RUN apk update && apk upgrade && echo "UTC" > /etc/timezone \
 	&& rm -rf /var/cache/apk/* \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& rm -rf /var/cache/*
-
-RUN  adduser \
-  --disabled-password \
-  --home /app \
-  --gecos '' app_user \
-  && chown -R app_user /app
 
 WORKDIR /app
 
