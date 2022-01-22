@@ -17,21 +17,19 @@ RUN apk update && apk upgrade && echo "UTC" > /etc/timezone \
 	&& rm -rf /tmp/* \
 	&& rm -rf /var/cache/apk/* \
 	&& rm -rf /var/lib/apt/lists/* \
-	&& rm -rf /var/cache/*
+	&& rm -rf /var/cache/* \
+	&& mkdir /app
 
 WORKDIR /app
 
-COPY --chown=app_user . .
+COPY . .
 
-USER app_user
-
-COPY --chown=app_user --from=composer:latest /usr/bin/composer .
+COPY --from=composer:latest /usr/bin/composer .
 
 ENV COMPOSER_HOME /app/.composer
 
 RUN rm -rf ./docker &&  mkdir ./runtime && mkdir /app/.composer/ \
-	&& ./composer install --no-autoloader --no-suggest \
-	&& ./composer du -o -a --no-scripts \
+	&& ./composer install -o -a \
 	&& ./composer clear-cache \
 	&& rm ./composer \
 	&& rm -rf /app/.composer \
