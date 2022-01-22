@@ -3,18 +3,38 @@ name: Docker Image CI
 on:
   push:
     branches: ['dev']
+    path:
+      - .github/**
+      - src/**
+      - tests/**
+      - docker/**
+      - composer.lock
+      - composer.json
+      - phpunit.xml.dist
+      - .dockerignore
+      - docker-compose.yml
   pull_request:
     branches: ['dev']
+    path:
+      - .github/**
+      - src/**
+      - tests/**
+      - docker/**
+      - composer.lock
+      - composer.json
+      - .dockerignore
+      - phpunit.xml.dist
+      - docker-compose.yml
 
 jobs:
 
-  test:
+  tests:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker images
-      run: docker-compose build
+      run: docker-compose build -q
     - name: Run test
       run: docker-compose up micro
