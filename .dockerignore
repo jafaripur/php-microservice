@@ -2,8 +2,8 @@
 /vendor/
 /.git/
 /lint
-/tools/
 /temp/
+/.php-cs-fixer.cache
 
 /README.md
 /.gitignore

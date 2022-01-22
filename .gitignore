@@ -1,8 +1,8 @@
 /vendor
-/.phpunit.result.cache
 
-/temp
-/tools
-/lint
+/.phpunit.result.cache
+/.php-cs-fixer.cache
 
 /phpunit.xml
+
+/temp

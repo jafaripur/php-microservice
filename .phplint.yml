@@ -1,0 +1,14 @@
+path: ./
+jobs: 10
+cache: temp/.phplint.cache
+extensions:
+  - php
+exclude:
+  - .github
+  - vendor
+  - .git
+  - tools
+  - temp
+  - docker
+warning: false
+no-interaction: true

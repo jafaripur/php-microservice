@@ -1,0 +1,9 @@
+#!/bin/bash -i
+
+php8 vendor/bin/php-cs-fixer fix --show-progress=dots
+
+php ./vendor/bin/phplint
+
+php ./vendor/bin/psalm
+
+php ./vendor/bin/phpunit
