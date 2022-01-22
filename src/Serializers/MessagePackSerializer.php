@@ -48,6 +48,6 @@ final class MessagePackSerializer implements SerializerInterface
      */
     public function getContentType(): string
     {
-        return 'application/octet-stream';
+        return 'application/x-msgpack';
     }
 }
