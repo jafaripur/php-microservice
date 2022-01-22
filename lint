@@ -1,6 +1,6 @@
 #!/bin/bash -i
 
-php8 vendor/bin/php-cs-fixer fix --show-progress=dots
+php ./vendor/bin/php-cs-fixer fix --show-progress=dots
 
 php ./vendor/bin/phplint
 
