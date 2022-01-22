@@ -1,0 +1,8 @@
+/vendor
+/.phpunit.result.cache
+
+/temp
+/tools
+/lint
+
+/phpunit.xml

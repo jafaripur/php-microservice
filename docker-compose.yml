@@ -1,0 +1,25 @@
+ version: '3.8'
+ services:
+   php-microservice-rabbitmq-test:
+      image: rabbitmq:3.9.13-management-alpine
+      container_name: php-microservice-rabbitmq-test
+      hostname: php-microservice-rabbitmq-test
+      environment:
+         RABBITMQ_DEFAULT_USER: guest
+         RABBITMQ_DEFAULT_PASS: guest
+         RABBITMQ_DEFAULT_VHOST: test
+      tty: true
+      healthcheck:
+         test: "exit 0"
+
+   micro:
+      build:
+         context: ./
+         dockerfile: ./docker/Dockerfile
+         network: host
+      image: php-microservice-test:latest
+      init: true
+      tty: true
+      depends_on:
+         php-microservice-rabbitmq-test:
+            condition: service_healthy

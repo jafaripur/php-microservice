@@ -1,0 +1,15 @@
+/docker/
+/vendor/
+/.git/
+/lint
+/tools/
+/temp/
+
+/README.md
+/.gitignore
+/.dockerignore
+/.phpunit.result.cache
+/lint
+/docker-compose.yml
+/psalm.xml
+/phpunit.xml
