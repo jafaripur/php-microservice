@@ -4,7 +4,6 @@
     "description": "Microservice server and client.",
     "keywords": ["microservice", "amqp", "rabbitmq"],
     "license": "MIT",
-    "version": "0.0.1",
     "minimum-stability" : "dev",
     "prefer-stable": true,
     "readme": "README.md",
@@ -32,6 +31,7 @@
         "vimeo/psalm": "^4.18"
     },
     "suggest": {
+        "jafaripur/php-microservice-application": "Sample application using this library",
         "ext-amqp": "Using native AMQP wrapper.",
         "ext-msgpack": "Using for msgpack for payload serialize and unserialize."
     },

@@ -29,6 +29,7 @@ COPY --from=composer:latest /usr/bin/composer .
 ENV COMPOSER_HOME /app/.composer
 
 RUN rm -rf ./docker &&  mkdir ./runtime && mkdir /app/.composer/ \
+	&& ./composer validate --strict \
 	&& ./composer install -o -a \
 	&& ./composer clear-cache \
 	&& rm ./composer \
