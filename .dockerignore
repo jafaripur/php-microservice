@@ -9,7 +9,6 @@
 /.gitignore
 /.dockerignore
 /.phpunit.result.cache
-/lint
 /docker-compose.yml
 /psalm.xml
 /phpunit.xml

@@ -15,6 +15,12 @@
             "role": "Developer"
         }
     ],
+    "support": {
+        "email": "mjafaripur@yahoo.com",
+        "issues": "https://github.com/jafaripur/php-microservice/issues",
+        "source": "https://github.com/jafaripur/php-microservice",
+        "docs": "https://github.com/jafaripur/php-microservice/blob/master/README.md"
+    },
     "require": {
         "php": "^8.0",
         "enqueue/amqp-bunny": "^0.10.9",
@@ -34,12 +40,6 @@
         "jafaripur/php-microservice-application": "Sample application using this library",
         "ext-amqp": "Using native AMQP wrapper.",
         "ext-msgpack": "Using for msgpack for payload serialize and unserialize."
-    },
-    "support": {
-        "email": "mjafaripur@yahoo.com",
-        "issues": "https://github.com/jafaripur/php-microservice/issues",
-        "source": "https://github.com/jafaripur/php-microservice",
-        "docs": "https://github.com/jafaripur/php-microservice/blob/master/README.md"
     },
     "scripts": {
         "post-install-cmd": [
