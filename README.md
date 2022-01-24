@@ -412,6 +412,12 @@ $queue->getConsumer()->consume(0, ['first-consumer', 'second-consumer']);
 
 ```
 
+## Application Skeleton Template
+
+This application a template for microservice application and implement four methods of this library.
+
+[jafaripur/php-microservice-application](https://github.com/jafaripur/php-microservice-application)
+
 ## Test
 
 ```sh

@@ -37,7 +37,7 @@
         "vimeo/psalm": "^4.18"
     },
     "suggest": {
-        "jafaripur/php-microservice-application": "Sample application using this library",
+        "jafaripur/php-microservice-application": "Sample microservice application template using this library",
         "ext-amqp": "Using native AMQP wrapper.",
         "ext-msgpack": "Using for msgpack for payload serialize and unserialize."
     },
