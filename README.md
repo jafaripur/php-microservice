@@ -416,7 +416,8 @@ $queue->getConsumer()->consume(0, ['first-consumer', 'second-consumer']);
 
 This application a template for microservice application and implement four methods of this library.
 
-[jafaripur/php-microservice-application](https://github.com/jafaripur/php-microservice-application)
+Spiral framework: [jafaripur/php-microservice-application](https://github.com/jafaripur/php-microservice-application)
+Yii3 framework: [jafaripur/php-microservice-application-yii3](https://github.com/jafaripur/php-microservice-application-yii3)
 
 ## Test
 

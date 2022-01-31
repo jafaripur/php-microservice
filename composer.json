@@ -37,7 +37,8 @@
         "vimeo/psalm": "^4.18"
     },
     "suggest": {
-        "jafaripur/php-microservice-application": "Sample microservice application template using this library",
+        "jafaripur/php-microservice-application": "Sample microservice application template using this library with Spiral framework",
+        "jafaripur/php-microservice-application-yii3": "Sample microservice application template using this library with Yii3 framework",
         "ext-amqp": "Using native AMQP wrapper.",
         "ext-msgpack": "Using for msgpack for payload serialize and unserialize."
     },
@@ -54,7 +55,7 @@
     },
     "config": {
         "optimize-autoloader": true,
-		"classmap-authoritative": true,
+	"classmap-authoritative": true,
         "sort-packages": true,
         "preferred-install": "dist",
         "allow-plugins": {
