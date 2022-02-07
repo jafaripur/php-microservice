@@ -19,6 +19,8 @@ final class MessageProperty
      */
     public static function getProperty(AmqpMessage $message, string $key, mixed $default = null): mixed
     {
+        // https://php-enqueue.github.io/transport/amqp/ payload in AMQP server is not same as https://php-enqueue.github.io/transport/amqp_bunny/
+
         $data = $message->getProperty($key, null) ?? $message->getProperty('application_headers', [])[$key] ?? null;
         return $data ?? $message->getHeader($key, $default);
     }

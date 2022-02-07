@@ -6,6 +6,7 @@ namespace Araz\MicroService;
 
 use Araz\MicroService\Interfaces\QueueInterface;
 use Araz\MicroService\Interfaces\SerializerInterface;
+use Araz\MicroService\Sender\Client;
 use Araz\MicroService\Serializers\IgbinarySerializer;
 use Araz\MicroService\Serializers\JsonSerializer;
 use Araz\MicroService\Serializers\MessagePackSerializer;
@@ -50,9 +51,9 @@ class Queue implements QueueInterface
     /**
      * Client to send message
      *
-     * @var Sender $sender
+     * @var Client $client
      */
-    private Sender $sender;
+    private Client $client;
 
     /**
      * @var string $serializer
@@ -124,7 +125,7 @@ class Queue implements QueueInterface
         $this->initSerializer();
 
         if ($enableClient) {
-            $this->sender = new Sender($this);
+            $this->client = new Client($this);
         }
 
         if ($enableConsumer) {
@@ -174,13 +175,13 @@ class Queue implements QueueInterface
     /**
      * @inheritDoc
      */
-    public function getSender(): Sender
+    public function getClient(): Client
     {
-        if (!($this->sender instanceof Sender)) {
-            throw new \LogicException('This queue not support client as sender.');
+        if (!($this->client instanceof Client)) {
+            throw new \LogicException('This queue not support client as client.');
         }
 
-        return $this->sender;
+        return $this->client;
     }
 
     /**

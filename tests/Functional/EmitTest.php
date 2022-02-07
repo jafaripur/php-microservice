@@ -32,11 +32,32 @@ class EmitTest extends TestCase
         }
     }
 
+    public function testQueueSendEmitException()
+    {
+        try {
+            $this->queue->getClient()->emit()->send();
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(\LogicException::class, $th);
+            $this->assertStringContainsString('Topic name', $th->getMessage());
+        }
+
+        try {
+            $this->queue->getClient()->emit()->setDelay(-1);
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(\LogicException::class, $th);
+            $this->assertStringContainsString('Delay can not less than 0', $th->getMessage());
+        }
+    }
+
     public function testQueueSendAndReceiveEmit()
     {
         $data = ['id' => 123];
 
-        $this->queue->getSender()->emit('user_logged_in', $data);
+        $this->queue->getClient()->emit()
+            ->setTopicName('user_logged_in')
+            ->setData($data)
+            ->send();
+
         $this->queue->getConsumer()->consume(1);
 
         $this->assertEquals(UserLoggedInEmit::$receivedData, $data);
@@ -47,7 +68,13 @@ class EmitTest extends TestCase
         $data = ['id' => 123];
 
         UserLoggedInEmit::$receivedData = null;
-        $this->queue->getSender()->emit('user_logged_in', $data, 100);
+
+        $this->queue->getClient()->emit()
+            ->setTopicName('user_logged_in')
+            ->setData($data)
+            ->setDelay(100)
+            ->send();
+
         $this->queue->getConsumer()->consume(1);
         $this->assertEquals(UserLoggedInEmit::$receivedData, null);
         $this->queue->getConsumer()->consume(120);

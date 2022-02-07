@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Araz\MicroService;
+namespace Araz\MicroService\Sender;
 
 use Araz\MicroService\Exceptions\CommandRejectException;
 use Araz\MicroService\Exceptions\CommandTimeoutException;
 use Araz\MicroService\Exceptions\CorrelationInvalidException;
 use Araz\MicroService\Exceptions\SerializerNotFoundException;
+use Araz\MicroService\MessageProperty;
+use Araz\MicroService\Processor;
+use Araz\MicroService\Queue;
 use Interop\Amqp\Impl\AmqpMessage;
 use Interop\Amqp\Impl\AmqpQueue;
 use Generator;

@@ -67,7 +67,7 @@ abstract class ProcessorConsumer
     /**
      * Run after the message acknowledge
      *
-     * @param  string       $status   reject, ack, reject
+     * @param  string       $status   reject, ack, requeue
      * @param  AmqpMessage  $message
      * @param  AmqpConsumer $consumer
      * @return void

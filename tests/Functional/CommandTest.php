@@ -33,10 +33,59 @@ class CommandTest extends TestCase
         }
     }
 
+    public function testQueueSendCommandException()
+    {
+        try {
+            $this->queue->getClient()->command()->send();
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(\LogicException::class, $th);
+            $this->assertStringContainsString('Queue name', $th->getMessage());
+        }
+
+        try {
+            $this->queue->getClient()->command()
+                ->setJobName('test')
+                ->send();
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(\LogicException::class, $th);
+            $this->assertStringContainsString('Queue name', $th->getMessage());
+        }
+
+        try {
+            $this->queue->getClient()->command()
+                ->setQueueName('test')
+                ->send();
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(\LogicException::class, $th);
+            $this->assertStringContainsString('Job name', $th->getMessage());
+        }
+
+        try {
+            $this->queue->getClient()->command()
+                ->setTimeout(-1);
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(\LogicException::class, $th);
+            $this->assertStringContainsString('Timeout should be more than', $th->getMessage());
+        }
+
+        try {
+            $this->queue->getClient()->command()
+                ->setPriority(200);
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(\LogicException::class, $th);
+            $this->assertStringContainsString('Priority accept between 0', $th->getMessage());
+        }
+    }
+
     public function testQueueSendCommandTimeout()
     {
         try {
-            $this->queue->getSender()->command('service_command', 'profile_info', ['id' => 123], 100);
+            $this->queue->getClient()->command()
+                ->setQueueName('service_command')
+                ->setJobName('profile_info')
+                ->setData(['id' => 123])
+                ->setTimeout(20)
+                ->send();
         } catch (\Throwable $th) {
             $this->assertInstanceOf(CommandTimeoutException::class, $th);
         }
@@ -49,7 +98,7 @@ class CommandTest extends TestCase
             'command-2' => ['id' => 1234],
         ];
 
-        $commands = $this->queue->getSender()->async(4000)
+        $commands = $this->queue->getClient()->async(4000)
             ->command('service_command', 'profile_info', $data['command-1'], 'command-1', 2000)
             ->command('service_command', 'profile_info', $data['command-2'], 'command-2', 2000);
 
@@ -68,7 +117,7 @@ class CommandTest extends TestCase
             'command-2' => ['id' => 1234],
         ];
 
-        $commands = $this->queue->getSender()->async(4000)
+        $commands = $this->queue->getClient()->async(4000)
             ->command('service_command', 'profile_info_reject', $data['command-1'], 'command-1', 2000)
             ->command('service_command', 'profile_info_reject', $data['command-2'], 'command-2', 2000);
 
