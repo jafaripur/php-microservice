@@ -126,7 +126,7 @@ final class WorkerSender extends SenderBase
             throw new \LogicException("Job name is required!");
         }
 
-        if (!is_null($this->delay) && !is_null($this->expiration)) {
+        if ($this->delay && $this->expiration) {
             throw new \LogicException('Just one of $delay or $expiration can be set');
         }
 
