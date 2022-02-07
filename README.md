@@ -446,6 +446,8 @@ Spiral framework: [jafaripur/php-microservice-application](https://github.com/ja
 
 Yii3 framework: [jafaripur/php-microservice-application-yii3](https://github.com/jafaripur/php-microservice-application-yii3)
 
+Yii2 framework: [jafaripur/php-microservice-application-yii2](https://github.com/jafaripur/php-microservice-application-yii2)
+
 ## Test
 
 ```sh
