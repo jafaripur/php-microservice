@@ -15,4 +15,4 @@ Before commit and pull request, use this command for apply:
 
 ```
 
-After running `. /Lint`, push new created and committed branch.
+After running `. /lint`, push new created and committed branch.

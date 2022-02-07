@@ -116,7 +116,13 @@ $data = ['id' => 123];
 $timeout = 3000; // 3 second timeout if a response not receive in this period, default is 10 second
 $priority = 0; // 0-5 priority, Higher is high priority, default is null
 
-$result = $queue->getSender()->command($queueName, $jobName, $data, $timeout, $priority);
+$result = $queue->getSender()->command()
+    ->setQueueName($queueName)
+    ->setJobName($jobName)
+    ->setData($data)
+    ->setTimeout($timeout)
+    ->setPriority($priority)
+    ->send();
 
 ```
 
@@ -124,12 +130,14 @@ For async command and sending several commmand:
 
 ```php
 
-// 20000 timeout for the whole command list, if all messages not received in this period exception will be raised.
-// 2000 for timeout per message, This timeout is autoremove message
-$commands = $queue->getSender()->async(20000)
-    ->command('user_service_command', 'get_profile_info', ['id' => 1], 'test1_id_unique_1', 2000)
-    ->command('user_service_command', 'get_profile_info', ['id' => 2], 'test1_id_unique_2', 2000)
-    ->command('user_service_command', 'get_profile_info', ['id' => 3], 'test1_id_unique_3', 2000);
+$asyncTimeout = 20000; // 20000 timeout for the whole command list, if all messages not received in this period exception will be raised.
+$commandTimeout = 2000; // 2000 for timeout per message, This timeout is autoremove message
+$priority = 0;
+
+$commands = $queue->getSender()->async($asyncTimeout)
+    ->command('user_service_command', 'get_profile_info', ['id' => 1], 'test1_id_unique_1', $commandTimeout, $priority)
+    ->command('user_service_command', 'get_profile_info', ['id' => 2], 'test1_id_unique_2', $commandTimeout, $priority)
+    ->command('user_service_command', 'get_profile_info', ['id' => 3], 'test1_id_unique_3', $commandTimeout, $priority);
 
 
 // Do more action ...
@@ -203,12 +211,19 @@ $queueName = 'user_service_worker';
 $jobName = 'user_profile_analysis';
 $data = ['id' => 123];
 $priority = 5; // 0-5 priority, Higher is high priority, default is null
-$expiration = null; // expire message in specific millisecond if message not acknowledged
+$expiration = 0; // expire message in specific millisecond if message not acknowledged
 $delay = 30000; // 30s
 
 // This message will be delayed for 30000 millisecond (30s), message with delay and expiration is not possible.
 
-$messageId = $queue->getSender()->worker($queueName, $jobName, $data, $priority, $expiration, $delay);
+$messageId = $queue->getSender()->worker()
+    ->setQueueName($queueName)
+    ->setJobName($jobName)
+    ->setData($data)
+    ->setPriority($priority)
+    ->setExpiration($expiration)
+    ->setDelay($delay)
+    ->send();
 
 ```
 
@@ -255,6 +270,12 @@ $delay = 5000 // 5 second as millisecond
 // This message will emit to consumer with 5 second delay
 
 $messageId = $queue->getSender()->emit($topic, $data, $delay);
+
+$messageId = $queue->getSender()->emit()
+    ->setTopicName($topic)
+    ->setData($data)
+    ->setDelay($delay)
+    ->send();
 
 ```
 
@@ -308,9 +329,14 @@ final class UserCreatedTopic extends Topic
 $topic = 'user_changed';
 $routingKey = 'user_topic_create';
 $data = ['id' => 123];
-$delay = null // millisecond, null or 0 disable delay
+$delay = 0 // millisecond, 0 disable delay
 
-$messageId = $queue->getSender()->topic($topic, $routingKey, $data, $delay);
+$messageId = $queue->getSender()->emit()
+    ->setTopicName($topic)
+    ->setRoutingKey($routingKey)
+    ->setData($data)
+    ->setDelay($delay)
+    ->send();
 
 ```
 
@@ -417,6 +443,7 @@ $queue->getConsumer()->consume(0, ['first-consumer', 'second-consumer']);
 This application a template for microservice application and implement four methods of this library.
 
 Spiral framework: [jafaripur/php-microservice-application](https://github.com/jafaripur/php-microservice-application)
+
 Yii3 framework: [jafaripur/php-microservice-application-yii3](https://github.com/jafaripur/php-microservice-application-yii3)
 
 ## Test

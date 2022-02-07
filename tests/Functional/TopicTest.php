@@ -32,17 +32,62 @@ class TopicTest extends TestCase
         }
     }
 
+    public function testQueueSendTopicException()
+    {
+        try {
+            $this->queue->getClient()->topic()->send();
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(\LogicException::class, $th);
+            $this->assertStringContainsString('Topic name is required', $th->getMessage());
+        }
+
+        try {
+            $this->queue->getClient()->topic()
+                ->setTopicName('test')
+                ->send();
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(\LogicException::class, $th);
+            $this->assertStringContainsString('Routing key name is required', $th->getMessage());
+        }
+
+        try {
+            $this->queue->getClient()->topic()
+                ->setRoutingKey('test')
+                ->send();
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(\LogicException::class, $th);
+            $this->assertStringContainsString('Topic name is required', $th->getMessage());
+        }
+
+        try {
+            $this->queue->getClient()->topic()->setDelay(-1);
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(\LogicException::class, $th);
+            $this->assertStringContainsString('Delay can not less than 0', $th->getMessage());
+        }
+    }
+
     public function testQueueSendAndReceiveTopic()
     {
         $data = ['id' => 123];
 
-        $this->queue->getSender()->topic('user_changed', 'user_topic_create', $data);
+        $this->queue->getClient()->topic()
+            ->setTopicName('user_changed')
+            ->setRoutingKey('user_topic_create')
+            ->setData($data)
+            ->send();
+
         $this->queue->getConsumer()->consume(1);
         $this->assertEquals(UserCreatedTopic::$receivedData, $data);
 
         $data = ['id' => 1234];
 
-        $this->queue->getSender()->topic('user_changed', 'user_topic_update', $data);
+        $this->queue->getClient()->topic()
+            ->setTopicName('user_changed')
+            ->setRoutingKey('user_topic_update')
+            ->setData($data)
+            ->send();
+
         $this->queue->getConsumer()->consume(1);
         $this->assertEquals(UserCreatedTopic::$receivedData, $data);
     }
@@ -52,15 +97,27 @@ class TopicTest extends TestCase
         $data = ['id' => 123];
 
         UserCreatedTopic::$receivedData = null;
-        $this->queue->getSender()->topic('user_changed', 'user_topic_create', $data, 100);
+
+        $this->queue->getClient()->topic()
+            ->setTopicName('user_changed')
+            ->setRoutingKey('user_topic_create')
+            ->setData($data)
+            ->setDelay(100)
+            ->send();
+
         $this->queue->getConsumer()->consume(1);
         $this->assertEquals(UserCreatedTopic::$receivedData, null);
         $this->queue->getConsumer()->consume(120);
         $this->assertEquals(UserCreatedTopic::$receivedData, $data);
 
-
         UserCreatedTopic::$receivedData = null;
-        $this->queue->getSender()->topic('user_changed', 'user_topic_update', $data, 100);
+        $this->queue->getClient()->topic()
+            ->setTopicName('user_changed')
+            ->setRoutingKey('user_topic_update')
+            ->setData($data)
+            ->setDelay(100)
+            ->send();
+
         $this->queue->getConsumer()->consume(1);
         $this->assertEquals(UserCreatedTopic::$receivedData, null);
         $this->queue->getConsumer()->consume(120);

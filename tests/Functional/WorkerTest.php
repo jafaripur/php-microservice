@@ -35,28 +35,49 @@ class WorkerTest extends TestCase
     public function testQueueSendAndReceiveWorkerException()
     {
         try {
-            $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 123456], null, 500, 3);
+            $this->queue->getClient()->worker()
+                ->setQueueName('service_worker')
+                ->setJobName('user_profile_analysis')
+                ->setData(['id' => 123456])
+                ->setExpiration(500)
+                ->setDelay(3)
+                ->send();
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Just one of $delay or $expiration can be set', $th->getMessage());
         }
 
         try {
-            $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 123456], 300);
+            $this->queue->getClient()->worker()
+                ->setQueueName('service_worker')
+                ->setJobName('user_profile_analysis')
+                ->setData(['id' => 123456])
+                ->setPriority(300)
+                ->send();
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Priority accept between 0 and', $th->getMessage());
         }
 
         try {
-            $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 123456], -1);
+            $this->queue->getClient()->worker()
+                ->setQueueName('service_worker')
+                ->setJobName('user_profile_analysis')
+                ->setData(['id' => 123456])
+                ->setPriority(-1)
+                ->send();
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Priority accept between 0 and', $th->getMessage());
         }
 
         try {
-            $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 123456], null, null, -1);
+            $this->queue->getClient()->worker()
+                ->setQueueName('service_worker')
+                ->setJobName('user_profile_analysis')
+                ->setData(['id' => 123456])
+                ->setDelay(-1)
+                ->send();
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Delay can not less than 0', $th->getMessage());
@@ -67,7 +88,12 @@ class WorkerTest extends TestCase
     {
         $data = ['id' => 123];
 
-        $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', $data);
+        $this->queue->getClient()->worker()
+            ->setQueueName('service_worker')
+            ->setJobName('user_profile_analysis')
+            ->setData($data)
+            ->send();
+
         $this->queue->getConsumer()->consume(1);
 
         $this->assertEquals(UserProfileAnalysisWorker::$receivedData, $data);
@@ -75,11 +101,40 @@ class WorkerTest extends TestCase
 
     public function testQueueSendAndReceiveWorkerPriority()
     {
-        $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 123456], 4);
-        $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 1234], 4);
-        $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 1235], 1);
-        $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 123522], 0);
-        $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 1236], 2);
+        $this->queue->getClient()->worker()
+            ->setQueueName('service_worker')
+            ->setJobName('user_profile_analysis')
+            ->setData(['id' => 123456])
+            ->setPriority(4)
+            ->send();
+
+        $this->queue->getClient()->worker()
+            ->setQueueName('service_worker')
+            ->setJobName('user_profile_analysis')
+            ->setData(['id' => 1234])
+            ->setPriority(4)
+            ->send();
+
+        $this->queue->getClient()->worker()
+            ->setQueueName('service_worker')
+            ->setJobName('user_profile_analysis')
+            ->setData(['id' => 1235])
+            ->setPriority(1)
+            ->send();
+
+        $this->queue->getClient()->worker()
+            ->setQueueName('service_worker')
+            ->setJobName('user_profile_analysis')
+            ->setData(['id' => 123522])
+            ->setPriority(0)
+            ->send();
+
+        $this->queue->getClient()->worker()
+            ->setQueueName('service_worker')
+            ->setJobName('user_profile_analysis')
+            ->setData(['id' => 1236])
+            ->setPriority(2)
+            ->send();
 
         $this->queue->getConsumer()->consume(100);
 
@@ -89,13 +144,26 @@ class WorkerTest extends TestCase
     public function testQueueSendAndReceiveWorkerExpire()
     {
         UserProfileAnalysisWorker::$receivedData = null;
-        $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 123456], null, 1000);
+        $this->queue->getClient()->worker()
+            ->setQueueName('service_worker')
+            ->setJobName('user_profile_analysis')
+            ->setData(['id' => 123456])
+            ->setExpiration(1000)
+            ->send();
+
         $this->queue->getConsumer()->consume(1);
         $this->assertEquals(UserProfileAnalysisWorker::$receivedData, ['id' => 123456]);
 
         UserProfileAnalysisWorker::$receivedData = null;
-        $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 123456], null, 1);
+        $this->queue->getClient()->worker()
+            ->setQueueName('service_worker')
+            ->setJobName('user_profile_analysis')
+            ->setData(['id' => 123456])
+            ->setExpiration(1)
+            ->send();
+
         usleep(2000);
+
         $this->queue->getConsumer()->consume(1);
         $this->assertEquals(UserProfileAnalysisWorker::$receivedData, null);
     }
@@ -103,7 +171,14 @@ class WorkerTest extends TestCase
     public function testQueueSendAndReceiveWorkerDelay()
     {
         UserProfileAnalysisWorker::$receivedData = null;
-        $this->queue->getSender()->worker('service_worker', 'user_profile_analysis', ['id' => 123456], null, null, 100);
+
+        $this->queue->getClient()->worker()
+            ->setQueueName('service_worker')
+            ->setJobName('user_profile_analysis')
+            ->setData(['id' => 123456])
+            ->setDelay(100)
+            ->send();
+
         $this->queue->getConsumer()->consume(1);
         $this->assertEquals(UserProfileAnalysisWorker::$receivedData, null);
         $this->queue->getConsumer()->consume(120);

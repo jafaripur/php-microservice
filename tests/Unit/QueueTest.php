@@ -2,12 +2,16 @@
 
 namespace Araz\MicroService\Tests\Unit;
 
-use Araz\MicroService\AsyncSender;
+use Araz\MicroService\Sender\AsyncSender;
+use Araz\MicroService\Sender\CommandSender;
+use Araz\MicroService\Sender\EmitSender;
+use Araz\MicroService\Sender\TopicSender;
+use Araz\MicroService\Sender\WorkerSender;
 use Araz\MicroService\Consumer;
 use Araz\MicroService\Exceptions\SerializerNotFoundException;
 use Araz\MicroService\Interfaces\SerializerInterface;
 use Araz\MicroService\Queue;
-use Araz\MicroService\Sender;
+use Araz\MicroService\Sender\Client;
 use Araz\MicroService\Serializers\JsonSerializer;
 use Araz\MicroService\Serializers\PhpSerializer;
 use Interop\Amqp\AmqpConsumer;
@@ -65,8 +69,12 @@ class QueueTest extends TestCase
         $this->assertInstanceOf(AmqpMessage::class, $queue->createMessage('just test'));
 
         $this->assertInstanceOf(Consumer::class, $queue->getConsumer());
-        $this->assertInstanceOf(Sender::class, $queue->getSender());
-        $this->assertInstanceOf(AsyncSender::class, $queue->getSender()->async());
+        $this->assertInstanceOf(Client::class, $queue->getClient());
+        $this->assertInstanceOf(CommandSender::class, $queue->getClient()->command());
+        $this->assertInstanceOf(EmitSender::class, $queue->getClient()->emit());
+        $this->assertInstanceOf(TopicSender::class, $queue->getClient()->topic());
+        $this->assertInstanceOf(WorkerSender::class, $queue->getClient()->worker());
+        $this->assertInstanceOf(AsyncSender::class, $queue->getClient()->async());
 
         try {
             $queue->getConsumer()->consume(500);
@@ -111,7 +119,7 @@ class QueueTest extends TestCase
         }
 
         try {
-            $queue->getSerializer(Sender::class);
+            $queue->getSerializer(Client::class);
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
         }
