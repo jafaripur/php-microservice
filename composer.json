@@ -39,6 +39,7 @@
     "suggest": {
         "jafaripur/php-microservice-application": "Sample microservice application template using this library with Spiral framework",
         "jafaripur/php-microservice-application-yii3": "Sample microservice application template using this library with Yii3 framework",
+        "jafaripur/php-microservice-application-yii2": "Sample microservice application template using this library with Yii2 framework",
         "ext-amqp": "Using native AMQP wrapper.",
         "ext-msgpack": "Using for msgpack for payload serialize and unserialize."
     },
