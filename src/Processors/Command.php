@@ -27,6 +27,19 @@ abstract class Command extends Processor
     abstract public function getJobName(): string;
 
     /**
+     * Run after the message is command and when replied back command response
+     *
+     * @param  string|null       $messageId   message id
+     * @param  string|null       $replyId   message id of reply message
+     * @param  string|null       $correlationId   correlation id of message
+     * @param  string            $status ack, reject, requeue
+     * @return void
+     */
+    public function afterMessageReplytoCommand(?string $messageId, ?string $replyId, ?string $correlationId, string $status): void
+    {
+    }
+
+    /**
      * @inheritDoc
      */
     public function validateProcessor(): void

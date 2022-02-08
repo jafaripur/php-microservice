@@ -67,12 +67,13 @@ abstract class ProcessorConsumer
     /**
      * Run after the message acknowledge
      *
+     * @param  Processor    $processor
      * @param  string       $status   reject, ack, requeue
      * @param  AmqpMessage  $message
      * @param  AmqpConsumer $consumer
      * @return void
      */
-    public function afterMessageAcknowledge(string $status, AmqpMessage $message, AmqpConsumer $consumer): void
+    public function afterMessageAcknowledge(Processor $processor, string $status, AmqpMessage $message, AmqpConsumer $consumer): void
     {
     }
 
