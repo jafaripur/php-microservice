@@ -9,7 +9,7 @@ use Araz\MicroService\Processors\Topic;
 final class UserCreatedTopic extends Topic
 {
     public static $receivedData;
-    public function execute(mixed $body): void
+    public function execute(string $routingKey, mixed $body): void
     {
         static::$receivedData = $body;
     }
