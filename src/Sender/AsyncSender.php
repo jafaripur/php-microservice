@@ -100,9 +100,9 @@ final class AsyncSender
         $queue = $this->queue->createQueue($queueName, false);
 
         $message = $this->queue->createMessage($data, false);
-        MessageProperty::setProperty($message, (string)$this->queue::QUEUE_MESSAGE_PROPERTY_QUEUE, $queueName);
-        MessageProperty::setProperty($message, (string)$this->queue::QUEUE_MESSAGE_PROPERTY_JOB, $jobName);
-        MessageProperty::setProperty($message, (string)$this->queue::QUEUE_MESSAGE_PROPERTY_METHOD, (string)$this->queue::METHOD_JOB_COMMAND);
+        MessageProperty::setQueue($message, $queueName);
+        MessageProperty::setJob($message, $jobName);
+        MessageProperty::setMethod($message, (string)$this->queue::METHOD_JOB_COMMAND);
         $message->setCorrelationId($correlationId);
         $message->setReplyTo($this->queueResponse->getQueueName());
 
@@ -136,7 +136,7 @@ final class AsyncSender
         foreach ($listen as $reply) {
             $correlationId = $reply->getCorrelationId();
 
-            if (MessageProperty::getProperty($reply, (string)$this->queue::QUEUE_MESSAGE_PROPERTY_STATUS) == Processor::REJECT) {
+            if (MessageProperty::getStatus($reply) == Processor::REJECT) {
                 $this->consumer->acknowledge($reply);
                 yield $correlationId => [
                     'ack' => Processor::REJECT,
@@ -153,7 +153,7 @@ final class AsyncSender
             /**
              * @var string|null $serialize
              */
-            $serialize = MessageProperty::getProperty($this->messages[$correlationId], (string)$this->queue::QUEUE_MESSAGE_PROPERTY_SERIALIZE, null);
+            $serialize = MessageProperty::getSerializer($this->messages[$correlationId]);
 
             $serializer = $this->queue->getSerializer($serialize, true);
 

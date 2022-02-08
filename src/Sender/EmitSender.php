@@ -11,7 +11,7 @@ final class EmitSender extends SenderBase
 {
     private string $topicName = '';
 
-    private mixed $data;
+    private mixed $data = null;
 
     private ?int $delay = null;
 
@@ -79,8 +79,8 @@ final class EmitSender extends SenderBase
         $this->queue->bind($topic, $queue);
 
         $message = $this->queue->createMessage($this->data);
-        MessageProperty::setProperty($message, $this->queue::QUEUE_MESSAGE_PROPERTY_TOPIC, $this->topicName);
-        MessageProperty::setProperty($message, $this->queue::QUEUE_MESSAGE_PROPERTY_METHOD, $this->queue::METHOD_JOB_EMIT);
+        MessageProperty::setTopic($message, $this->topicName);
+        MessageProperty::setMethod($message, $this->queue::METHOD_JOB_EMIT);
 
         $this->queue->createProducer()
             ->setDeliveryDelay($this->delay)

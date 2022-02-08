@@ -13,7 +13,7 @@ final class WorkerSender extends SenderBase
 
     private string $jobName = '';
 
-    private mixed $data;
+    private mixed $data = null;
 
     private ?int $priority = null;
 
@@ -143,9 +143,9 @@ final class WorkerSender extends SenderBase
         $this->queue->declareQueue($queue);
 
         $message = $this->queue->createMessage($this->data);
-        MessageProperty::setProperty($message, $this->queue::QUEUE_MESSAGE_PROPERTY_QUEUE, $this->queueName);
-        MessageProperty::setProperty($message, $this->queue::QUEUE_MESSAGE_PROPERTY_JOB, $this->jobName);
-        MessageProperty::setProperty($message, $this->queue::QUEUE_MESSAGE_PROPERTY_METHOD, $this->queue::METHOD_JOB_WORKER);
+        MessageProperty::setQueue($message, $this->queueName);
+        MessageProperty::setJob($message, $this->jobName);
+        MessageProperty::setMethod($message, $this->queue::METHOD_JOB_WORKER);
 
         $this->queue->createProducer()
             ->setPriority($this->priority)

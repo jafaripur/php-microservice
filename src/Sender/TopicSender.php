@@ -13,7 +13,7 @@ final class TopicSender extends SenderBase
 
     private string $routingKey = '';
 
-    private mixed $data;
+    private mixed $data = null;
 
     private ?int $delay = null;
 
@@ -99,8 +99,8 @@ final class TopicSender extends SenderBase
         $this->queue->bind($topic, $queue, $this->routingKey);
 
         $message = $this->queue->createMessage($this->data);
-        MessageProperty::setProperty($message, $this->queue::QUEUE_MESSAGE_PROPERTY_TOPIC, $this->topicName);
-        MessageProperty::setProperty($message, $this->queue::QUEUE_MESSAGE_PROPERTY_METHOD, $this->queue::METHOD_JOB_TOPIC);
+        MessageProperty::setTopic($message, $this->topicName);
+        MessageProperty::setMethod($message, $this->queue::METHOD_JOB_TOPIC);
         $message->setRoutingKey($this->routingKey);
 
         $this->queue->createProducer()

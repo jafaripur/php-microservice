@@ -22,7 +22,7 @@ final class CommandSender extends SenderBase
 
     private string $jobName = '';
 
-    private mixed $data;
+    private mixed $data = null;
 
     private int $timeout = self::COMMAND_MESSAGE_TIMEOUT;
 
@@ -131,9 +131,9 @@ final class CommandSender extends SenderBase
         $this->queue->declareQueue($queue);
 
         $message = $this->queue->createMessage($this->data, false);
-        MessageProperty::setProperty($message, $this->queue::QUEUE_MESSAGE_PROPERTY_QUEUE, $this->queueName);
-        MessageProperty::setProperty($message, $this->queue::QUEUE_MESSAGE_PROPERTY_JOB, $this->jobName);
-        MessageProperty::setProperty($message, $this->queue::QUEUE_MESSAGE_PROPERTY_METHOD, $this->queue::METHOD_JOB_COMMAND);
+        MessageProperty::setQueue($message, $this->queueName);
+        MessageProperty::setJob($message, $this->jobName);
+        MessageProperty::setMethod($message, $this->queue::METHOD_JOB_COMMAND);
         $message->setCorrelationId($this->queue->createUniqueIdentify());
         $message->setReplyTo($queueResponse->getQueueName());
 
@@ -151,7 +151,7 @@ final class CommandSender extends SenderBase
             throw new CommandTimeoutException('Command timeout.');
         }
 
-        if (MessageProperty::getProperty($reply, $this->queue::QUEUE_MESSAGE_PROPERTY_STATUS) == Processor::REJECT) {
+        if (MessageProperty::getStatus($reply) == Processor::REJECT) {
             $consumer->acknowledge($reply);
             throw new CommandRejectException('Command rejected.');
         }
@@ -165,7 +165,7 @@ final class CommandSender extends SenderBase
             throw new CorrelationInvalidException('Invalid data received!');
         }
 
-        $serialize = MessageProperty::getProperty($reply, $this->queue::QUEUE_MESSAGE_PROPERTY_SERIALIZE, null);
+        $serialize = MessageProperty::getSerializer($reply);
 
         $serializer = $this->queue->getSerializer($serialize, true);
 
