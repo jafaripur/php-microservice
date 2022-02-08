@@ -14,10 +14,11 @@ abstract class Topic extends Processor
     /**
      * Process received topic
      *
+     * @param  string $routingKey
      * @param  mixed $body received data
      * @return void
      */
-    abstract public function execute(mixed $body): void;
+    abstract public function execute(string $routingKey, mixed $body): void;
 
     /**
      * Get routing keys for bind to topic

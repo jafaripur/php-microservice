@@ -27,6 +27,7 @@ use Interop\Amqp\Impl\AmqpMessage;
 use Interop\Amqp\Impl\AmqpTopic;
 use Interop\Queue\SubscriptionConsumer;
 use Psr\Container\ContainerInterface;
+use Interop\Queue\Message;
 
 class Queue implements QueueInterface
 {
@@ -44,16 +45,16 @@ class Queue implements QueueInterface
     /**
      * Server to listen to grab messages
      *
-     * @var Consumer $consumer
+     * @var Consumer|null $consumer
      */
-    private Consumer $consumer;
+    private ?Consumer $consumer;
 
     /**
      * Client to send message
      *
-     * @var Client $client
+     * @var Client|null $client
      */
-    private Client $client;
+    private ?Client $client;
 
     /**
      * @var string $serializer
@@ -97,11 +98,11 @@ class Queue implements QueueInterface
         array $processorConsumers = [],
         ?string $serializer = null,
     ) {
-        if (!trim($appName)) {
+        $this->appName = trim($appName);
+
+        if (!trim($this->appName)) {
             throw new \LogicException('the $appName Application name is required!');
         }
-
-        $this->appName = trim($appName);
 
         $this->logger = $logger ?? new NullLogger();
         $serializer ??= JsonSerializer::class;
@@ -298,7 +299,7 @@ class Queue implements QueueInterface
 
         $message->setMessageId($this->createUniqueIdentify());
         $message->setDeliveryMode($persistent ? AmqpMessage::DELIVERY_MODE_PERSISTENT : AmqpMessage::DELIVERY_MODE_NON_PERSISTENT);
-        MessageProperty::setProperty($message, self::QUEUE_MESSAGE_PROPERTY_SERIALIZE, $this->getSerializer()->getName());
+        MessageProperty::setSerializer($message, $this->getSerializer()->getName());
         $message->setContentType($this->getSerializer()->getContentType());
 
         return $message;

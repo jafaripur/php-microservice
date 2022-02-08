@@ -15,7 +15,7 @@ $config = new PhpCsFixer\Config();
 
 $config->setRules([
         '@PSR12' => true,
-        '@PHP80Migration' => true,
+        '@PHP81Migration' => true,
         'strict_param' => true,
         'array_syntax' => ['syntax' => 'short'],
     ])

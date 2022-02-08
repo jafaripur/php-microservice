@@ -15,6 +15,7 @@ use Interop\Amqp\Impl\AmqpQueue;
 use Interop\Amqp\Impl\AmqpTopic;
 use Interop\Queue\SubscriptionConsumer;
 use Psr\Log\LoggerInterface;
+use Interop\Queue\Message;
 
 interface QueueInterface
 {
@@ -33,13 +34,6 @@ interface QueueInterface
         self::METHOD_JOB_WORKER,
         self::METHOD_JOB_TOPIC,
     ];
-
-    public const QUEUE_MESSAGE_PROPERTY_TOPIC = 'araz_topic';
-    public const QUEUE_MESSAGE_PROPERTY_QUEUE = 'araz_queue';
-    public const QUEUE_MESSAGE_PROPERTY_JOB = 'araz_job';
-    public const QUEUE_MESSAGE_PROPERTY_METHOD = 'araz_method';
-    public const QUEUE_MESSAGE_PROPERTY_SERIALIZE = 'araz_serialize';
-    public const QUEUE_MESSAGE_PROPERTY_STATUS = 'araz_ack_status';
 
     /**
      *
