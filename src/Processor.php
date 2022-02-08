@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Araz\MicroService;
 
-use Interop\Amqp\AmqpContext;
 use Interop\Amqp\AmqpConsumer;
 use Interop\Amqp\Impl\AmqpMessage;
 
@@ -27,7 +26,7 @@ abstract class Processor
     }
 
     /**
-     * Get current running queue
+     * Get current running queue object
      *
      * @return Queue
      */
@@ -67,18 +66,17 @@ abstract class Processor
      *
      * @param AmqpMessage $message
      * @param AmqpConsumer $consumer
-     * @param AmqpContext $context
      *
      * @return string this can be self::ACK, self::REJECT, self::REQUEUE
      *
      */
-    public function process(AmqpMessage $message, AmqpConsumer $consumer, AmqpContext $context): string
+    public function process(AmqpMessage $message, AmqpConsumer $consumer): string
     {
         return self::ACK;
     }
 
     /**
-     * Run before the main action
+     * Run before the main action (execute)
      * With returning false, message => reject
      *
      * @param mixed   $data  received data
@@ -107,19 +105,6 @@ abstract class Processor
      * @return void
      */
     public function afterMessageAcknowledge(string $status): void
-    {
-    }
-
-    /**
-     * Run after the message is command and when replied back command response
-     *
-     * @param  string       $messageId   message id
-     * @param  string       $replyId   message id of reply message
-     * @param  string       $correlationId   correlation id of message
-     * @param  string       $status ack, reject, requeue
-     * @return void
-     */
-    public function afterMessageReplytoCommand(?string $messageId, ?string $replyId, ?string $correlationId, string $stauts): void
     {
     }
 }

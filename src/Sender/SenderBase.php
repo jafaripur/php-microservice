@@ -8,10 +8,10 @@ use Araz\MicroService\Queue;
 
 abstract class SenderBase
 {
-   /**
-     *
-     * @var Queue $queue
-     */
+    /**
+      *
+      * @var Queue $queue
+      */
     protected Queue $queue;
 
     /**

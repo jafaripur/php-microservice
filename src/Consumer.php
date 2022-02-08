@@ -201,7 +201,7 @@ final class Consumer
 
         if ($method == $this->queue::METHOD_JOB_COMMAND && (!$message->getCorrelationId() || !$message->getReplyTo())) {
             $consumer->reject($message, false);
-            $this->queue->getLogger()->critical('Wrong command method comming without correlation_id and reply_to', $message->getProperties() + $message->getHeaders());
+            $this->queue->getLogger()->critical('Wrong command method coming without correlation_id and reply_to', $message->getProperties() + $message->getHeaders());
             return $this->returnReceiveCallbackResult(true);
         }
 
@@ -236,7 +236,7 @@ final class Consumer
         if (!$processor->beforeExecute($messageData)) {
             $consumer->reject($message, false);
 
-            if ($message->getReplyTo() && $message->getCorrelationId()) {
+            if ($processor instanceof Command) {
                 $processor->afterMessageReplytoCommand($message->getMessageId(), $this->replyBackMessage($message, null, Processor::REJECT), $message->getCorrelationId(), Processor::REJECT);
             }
 
@@ -250,7 +250,7 @@ final class Consumer
         /**
          * @var string $ackResult
          */
-        switch ($ackResult = $processor->process($message, $consumer, $this->queue->getContext())) {
+        switch ($ackResult = $processor->process($message, $consumer)) {
             case Processor::ACK:
                 $consumer->acknowledge($message);
                 break;
@@ -265,9 +265,9 @@ final class Consumer
         }
 
         $processor->afterMessageAcknowledge($ackResult);
-        $processorConsumer->afterMessageAcknowledge($ackResult, $message, $consumer);
+        $processorConsumer->afterMessageAcknowledge($processor, $ackResult, $message, $consumer);
 
-        if ($message->getReplyTo() && $message->getCorrelationId()) {
+        if ($processor instanceof Command) {
             $processor->afterMessageReplytoCommand($message->getMessageId(), $this->replyBackMessage($message, $executeResult, $ackResult), $message->getCorrelationId(), $ackResult);
         }
 
@@ -431,20 +431,20 @@ final class Consumer
      *
      * Create processor object
      *
-     * @param  ProcessorConsumer    $processorConsume
+     * @param  ProcessorConsumer    $processorConsumer
      * @param  string    $class
      * @psalm-param class-string $class
      * @return Processor
      */
-    private function createProcessor(ProcessorConsumer $processorConsume, string $class): Processor
+    private function createProcessor(ProcessorConsumer $processorConsumer, string $class): Processor
     {
         /**
          * @var Processor
          */
         $processor = $this->containerInjecter instanceof Injector ? $this->containerInjecter->make($class, [
             'queue' => $this->queue,
-            'processorConsumer' => $processorConsume,
-        ]) : new $class($this->queue, $processorConsume);
+            'processorConsumer' => $processorConsumer,
+        ]) : new $class($this->queue, $processorConsumer);
 
         $processor->validateProcessor();
 
