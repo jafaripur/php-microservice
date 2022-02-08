@@ -241,7 +241,7 @@ use Araz\MicroService\Processors\Emit;
 
 final class UserLoggedInEmit extends Emit
 {
-    public function execute(mixed $body): void
+    public function execute(string $routingKey, mixed $body): void
     {
         // Run emit
     }
@@ -295,7 +295,7 @@ use Araz\MicroService\Processors\Topic;
 
 final class UserCreatedTopic extends Topic
 {
-    public function execute(mixed $body): void
+    public function execute(string $routingKey, mixed $body): void
     {
         // Run topic
     }
