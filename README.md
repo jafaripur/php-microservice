@@ -241,7 +241,7 @@ use Araz\MicroService\Processors\Emit;
 
 final class UserLoggedInEmit extends Emit
 {
-    public function execute(string $routingKey, mixed $body): void
+    public function execute(mixed $body): void
     {
         // Run emit
     }
@@ -322,7 +322,7 @@ final class UserCreatedTopic extends Topic
 
 ```
 
-#### Usage of emit
+#### Usage of topic
 
 ```php
 
