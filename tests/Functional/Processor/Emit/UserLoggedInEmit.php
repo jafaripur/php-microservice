@@ -23,4 +23,9 @@ final class UserLoggedInEmit extends Emit
     {
         return sprintf('%s.user_logged_in_emit', $this->getQueue()->getAppName());
     }
+
+    public function resetAfterProcess(): bool
+    {
+        return true;
+    }
 }

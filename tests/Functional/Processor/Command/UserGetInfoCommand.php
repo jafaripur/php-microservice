@@ -22,4 +22,9 @@ final class UserGetInfoCommand extends Command
     {
         return 'profile_info';
     }
+
+    public function resetAfterProcess(): bool
+    {
+        return true;
+    }
 }

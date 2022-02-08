@@ -30,7 +30,7 @@ abstract class Processor
      *
      * @return Queue
      */
-    protected function getQueue(): Queue
+    public function getQueue(): Queue
     {
         return $this->queue;
     }
@@ -40,7 +40,7 @@ abstract class Processor
      *
      * @return ProcessorConsumer
      */
-    protected function getProcessorConsumer(): ProcessorConsumer
+    public function getProcessorConsumer(): ProcessorConsumer
     {
         return $this->processorConsumer;
     }
@@ -106,5 +106,15 @@ abstract class Processor
      */
     public function afterMessageAcknowledge(string $status): void
     {
+    }
+
+    /**
+     * Reset processor object to default after execute
+     *
+     * @return bool
+     */
+    public function resetAfterProcess(): bool
+    {
+        return false;
     }
 }
