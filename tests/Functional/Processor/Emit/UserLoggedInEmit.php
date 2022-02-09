@@ -28,4 +28,9 @@ final class UserLoggedInEmit extends Emit
     {
         return true;
     }
+
+    public function durableQueue(): bool
+    {
+        return false;
+    }
 }

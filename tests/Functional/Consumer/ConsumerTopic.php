@@ -18,9 +18,4 @@ final class ConsumerTopic extends ProcessorConsumer
     {
         yield \Araz\MicroService\Tests\Functional\Processor\Topic\UserCreatedTopic::class;
     }
-
-    public function durableQueue(): bool
-    {
-        return false;
-    }
 }

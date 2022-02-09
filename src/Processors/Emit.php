@@ -40,4 +40,15 @@ abstract class Emit extends Processor
             throw new \LogicException(sprintf('Loading emits, Topic name is required: %s', get_called_class()));
         }
     }
+
+    /**
+     * Set queue is durable
+     *
+     * @return bool
+     *
+     */
+    public function durableQueue(): bool
+    {
+        return true;
+    }
 }

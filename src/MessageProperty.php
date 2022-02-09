@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Araz\MicroService;
 
-//use Interop\Amqp\AmqpMessage;
 use Interop\Amqp\Impl\AmqpMessage;
 
 final class MessageProperty

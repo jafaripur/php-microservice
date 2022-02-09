@@ -27,7 +27,6 @@ use Interop\Amqp\Impl\AmqpMessage;
 use Interop\Amqp\Impl\AmqpTopic;
 use Interop\Queue\SubscriptionConsumer;
 use Psr\Container\ContainerInterface;
-use Interop\Queue\Message;
 
 class Queue implements QueueInterface
 {
@@ -64,6 +63,8 @@ class Queue implements QueueInterface
     private array $serializers = [];
 
     private string $appName;
+
+    private bool $lazyQueue = true;
 
     /**
      *
@@ -232,7 +233,10 @@ class Queue implements QueueInterface
             $queue->addFlag(AmqpQueue::FLAG_DURABLE);
         }
 
-        $queue->setArgument('x-queue-mode', 'lazy');
+        if ($this->lazyQueue) {
+            $queue->setArgument('x-queue-mode', 'lazy');
+        }
+
         $queue->setArgument('x-max-priority', self::MAX_PRIORITY);
         $queue->setArgument('x-expires', $ttl);
         $queue->setArgument('x-app', $this->getAppName());
@@ -286,6 +290,11 @@ class Queue implements QueueInterface
     public function setDelayStrategy(?DelayStrategy $strategy): void
     {
         $this->getContext()->setDelayStrategy($strategy);
+    }
+
+    public function lazyQueue(bool $lazy): void
+    {
+        $this->lazyQueue = $lazy;
     }
 
     /**

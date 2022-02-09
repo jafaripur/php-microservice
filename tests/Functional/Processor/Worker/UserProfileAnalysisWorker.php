@@ -23,4 +23,9 @@ final class UserProfileAnalysisWorker extends Worker
     {
         return 'user_profile_analysis';
     }
+
+    public function durableQueue(): bool
+    {
+        return false;
+    }
 }

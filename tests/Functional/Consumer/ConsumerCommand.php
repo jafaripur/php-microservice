@@ -20,8 +20,4 @@ final class ConsumerCommand extends ProcessorConsumer
         yield \Araz\MicroService\Tests\Functional\Processor\Command\UserGetInfoCommandReject::class;
     }
 
-    public function durableQueue(): bool
-    {
-        return false;
-    }
 }

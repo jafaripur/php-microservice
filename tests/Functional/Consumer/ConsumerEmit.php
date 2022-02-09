@@ -19,8 +19,4 @@ final class ConsumerEmit extends ProcessorConsumer
         yield \Araz\MicroService\Tests\Functional\Processor\Emit\UserLoggedInEmit::class;
     }
 
-    public function durableQueue(): bool
-    {
-        return false;
-    }
 }

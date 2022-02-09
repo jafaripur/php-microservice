@@ -29,4 +29,9 @@ final class UserGetInfoCommandReject extends Command
     {
         return 'profile_info_reject';
     }
+    
+    public function durableQueue(): bool
+    {
+        return false;
+    }
 }
