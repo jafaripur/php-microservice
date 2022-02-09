@@ -23,8 +23,26 @@ abstract class ProcessorConsumer
      */
     public const MAX_RETRY_REDELIVER_DELAY = 0;
 
-    public function __construct(protected Queue $queue)
+    private Queue $queue;
+
+    /**
+     * Set current running queue object
+     *
+     * @return void
+     */
+    public function setQueue(Queue $queue): void
     {
+        $this->queue = $queue;
+    }
+
+    /**
+     * Get current running queue object
+     *
+     * @return Queue
+     */
+    public function getQueue(): Queue
+    {
+        return $this->queue;
     }
 
     /**

@@ -361,9 +361,9 @@ final class Consumer
             /**
              * @var ProcessorConsumer
              */
-            $processorConsumer = $this->containerInjecter ? $this->containerInjecter->make($class, [
-                'queue' => $this->queue,
-            ]) : new $class($this->queue);
+            $processorConsumer = $this->containerInjecter ? $this->containerInjecter->make($class) : new $class();
+
+            $processorConsumer->setQueue($this->queue);
 
             if ($consumerCount && !in_array($processorConsumer->getConsumerIdentify(), $consumers, true)) {
                 continue;
@@ -424,10 +424,12 @@ final class Consumer
      */
     private function createProcessorObject(ProcessorConsumer $processorConsumer, string $class): Processor
     {
-        return $this->containerInjecter instanceof Injector ? $this->containerInjecter->make($class, [
-            'queue' => $this->queue,
-            'processorConsumer' => $processorConsumer,
-        ]) : new $class($this->queue, $processorConsumer);
+        $processor = $this->containerInjecter instanceof Injector ? $this->containerInjecter->make($class) : new $class();
+
+        $processor->setQueue($this->queue);
+        $processor->setProcessorConsumer($processorConsumer);
+
+        return $processor;
     }
 
     /**
@@ -524,7 +526,7 @@ final class Consumer
                 $topic->setType(AmqpTopic::TYPE_FANOUT);
                 $this->queue->declareTopic($topic);
                 $this->queue->bind($topic, $queue);
-                
+
                 $emits[$key] = true;
                 $all[$key] = true;
 

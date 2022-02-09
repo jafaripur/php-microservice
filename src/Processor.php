@@ -20,9 +20,8 @@ abstract class Processor
     public const REJECT = 'reject';
     public const REQUEUE = 'requeue';
 
-    public function __construct(private Queue $queue, private ProcessorConsumer $processorConsumer)
-    {
-    }
+    private Queue $queue;
+    private ProcessorConsumer $processorConsumer;
 
     /**
      * Get current running queue object
@@ -42,6 +41,26 @@ abstract class Processor
     public function getProcessorConsumer(): ProcessorConsumer
     {
         return $this->processorConsumer;
+    }
+
+    /**
+     * Set current running queue object
+     *
+     * @return void
+     */
+    public function setQueue(Queue $queue): void
+    {
+        $this->queue = $queue;
+    }
+
+    /**
+     * Set current running processor consumer
+     *
+     * @return void
+     */
+    public function setProcessorConsumer(ProcessorConsumer $processorConsumer): void
+    {
+        $this->processorConsumer = $processorConsumer;
     }
 
     /**
