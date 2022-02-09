@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Araz\MicroService;
 
+use Araz\MicroService\Processors\Command;
+use Araz\MicroService\Processors\Emit;
+use Araz\MicroService\Processors\Topic;
+use Araz\MicroService\Processors\Worker;
 use Interop\Amqp\AmqpConsumer;
 use Interop\Amqp\Impl\AmqpMessage;
 
@@ -16,13 +20,8 @@ abstract class Processor
     public const REJECT = 'reject';
     public const REQUEUE = 'requeue';
 
-    private ProcessorConsumer $processorConsumer;
-    private Queue $queue;
-
-    public function __construct(Queue $queue, ProcessorConsumer $processorConsumer)
+    public function __construct(private Queue $queue, private ProcessorConsumer $processorConsumer)
     {
-        $this->queue = $queue;
-        $this->processorConsumer = $processorConsumer;
     }
 
     /**
@@ -116,5 +115,35 @@ abstract class Processor
     public function resetAfterProcess(): bool
     {
         return false;
+    }
+
+    /**
+     * Queue ttl as millisecond
+     *
+     * @return integer time as millisecond
+     */
+    public function getQueueTtl(): int
+    {
+        return $this->queue::QUEUE_DEFAULT_TTL;
+    }
+
+    final public function isCommand(): bool
+    {
+        return $this instanceof Command;
+    }
+
+    final public function isWorker(): bool
+    {
+        return $this instanceof Worker;
+    }
+
+    final public function isTopic(): bool
+    {
+        return $this instanceof Topic;
+    }
+
+    final public function isEmit(): bool
+    {
+        return $this instanceof Emit;
     }
 }
