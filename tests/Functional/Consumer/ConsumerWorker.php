@@ -18,5 +18,4 @@ final class ConsumerWorker extends ProcessorConsumer
     {
         yield \Araz\MicroService\Tests\Functional\Processor\Worker\UserProfileAnalysisWorker::class;
     }
-
 }

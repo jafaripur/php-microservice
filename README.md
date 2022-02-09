@@ -62,9 +62,9 @@ If the service container configured, the dependency will be injected in `__const
 
 ```php
 
-public function __construct(Queue $queue, ProcessorConsumer $processorConsumer, LoggerInterface $logger)
+public function __construct(LoggerInterface $logger)
 {
-    parent::__construct($queue, $processorConsumer);
+    
 }
 
 ```

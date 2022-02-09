@@ -19,5 +19,4 @@ final class ConsumerCommand extends ProcessorConsumer
         yield \Araz\MicroService\Tests\Functional\Processor\Command\UserGetInfoCommand::class;
         yield \Araz\MicroService\Tests\Functional\Processor\Command\UserGetInfoCommandReject::class;
     }
-
 }
