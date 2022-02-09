@@ -27,4 +27,9 @@ final class UserGetInfoCommand extends Command
     {
         return true;
     }
+
+    public function durableQueue(): bool
+    {
+        return false;
+    }
 }

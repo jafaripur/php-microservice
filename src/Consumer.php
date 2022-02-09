@@ -19,12 +19,6 @@ use Yiisoft\Injector\Injector;
 final class Consumer
 {
     /**
-     *
-     * @var Queue $queue
-     */
-    private Queue $queue;
-
-    /**
      * Map each consumer tag with ProcessorConsumer identify
      *
      * @var array<int, string>
@@ -67,25 +61,14 @@ final class Consumer
     private ?Injector $containerInjecter;
 
     /**
-     * Consumer classes
      *
-     * @var string[]
-     */
-    private array $processorConsumerClasses = [];
-
-    /**
-     *
-     * @param  Queue              $queue                    Currently running queue (sender object)
+     * @param  Queue                   $queue                    Currently running queue (sender object)
      * @param  ContainerInterface|null $container                Service container
-     * @param  string[]              $processorConsumerClasses list of consumer classes
+     * @param  string[]                $processorConsumerClasses list of consumer classes
      */
-    public function __construct(Queue $queue, ?ContainerInterface $container = null, array $processorConsumerClasses = [])
+    public function __construct(private Queue $queue, ?ContainerInterface $container = null, private array $processorConsumerClasses = [])
     {
-        $this->queue = $queue;
-
         $this->containerInjecter = $container ? new Injector($container) : null;
-
-        $this->processorConsumerClasses = $processorConsumerClasses;
     }
 
     /**
@@ -237,14 +220,14 @@ final class Consumer
         if (!$processor->beforeExecute($messageData)) {
             $consumer->reject($message, false);
 
-            if ($processor instanceof Command) {
+            if ($processor->isCommand()) {
                 $processor->afterMessageReplytoCommand($message->getMessageId(), $this->replyBackMessage($message, null, Processor::REJECT), $message->getCorrelationId(), Processor::REJECT);
             }
 
             return $this->returnReceiveCallbackResult(true, $method, $processor);
         }
 
-        $executeResult = $processor instanceof Topic ? $processor->execute($routingKey, $messageData) : $processor->execute($messageData);
+        $executeResult = $processor->isTopic() ? $processor->execute($routingKey, $messageData) : $processor->execute($messageData);
 
         $processor->afterExecute($messageData);
 
@@ -268,7 +251,7 @@ final class Consumer
         $processor->afterMessageAcknowledge($ackResult);
         $processorConsumer->afterMessageAcknowledge($processor, $ackResult, $message, $consumer);
 
-        if ($processor instanceof Command) {
+        if ($processor->isCommand()) {
             $processor->afterMessageReplytoCommand($message->getMessageId(), $this->replyBackMessage($message, $executeResult, $ackResult), $message->getCorrelationId(), $ackResult);
         }
 
@@ -351,7 +334,6 @@ final class Consumer
                 ->send($queue, $message);
 
         $consumer->reject($message, false);
-        //$consumer->acknowledge($message);
 
         return true;
     }
@@ -413,39 +395,23 @@ final class Consumer
          */
         foreach ($processorConsume->getProcessors() as $class) {
             if (is_subclass_of($class, Command::class)) {
-                $this->addProcessor((string)$this->queue::METHOD_JOB_COMMAND, $this->createProcessor($processorConsume, $class));
+                $method = $this->queue::METHOD_JOB_COMMAND;
             } elseif (is_subclass_of($class, Worker::class)) {
-                $this->addProcessor((string)$this->queue::METHOD_JOB_WORKER, $this->createProcessor($processorConsume, $class));
+                $method = $this->queue::METHOD_JOB_WORKER;
             } elseif (is_subclass_of($class, Topic::class)) {
-                $this->addProcessor((string)$this->queue::METHOD_JOB_TOPIC, $this->createProcessor($processorConsume, $class));
+                $method = $this->queue::METHOD_JOB_TOPIC;
             } elseif (is_subclass_of($class, Emit::class)) {
-                $this->addProcessor((string)$this->queue::METHOD_JOB_EMIT, $this->createProcessor($processorConsume, $class));
+                $method = $this->queue::METHOD_JOB_EMIT;
             } else {
                 throw new \LogicException(sprintf('Processor not support: %s', $class));
             }
 
+            $processor = $this->createProcessorObject($processorConsume, $class);
+            $processor->validateProcessor();
+
+            $this->addProcessor($method, $processor);
             $this->queue->getLogger()->info(sprintf('Processor loaded: %s', $class));
         }
-    }
-
-    /**
-     *
-     * Create processor object
-     *
-     * @param  ProcessorConsumer    $processorConsumer
-     * @param  string    $class
-     * @return Processor
-     */
-    private function createProcessor(ProcessorConsumer $processorConsumer, string $class): Processor
-    {
-        /**
-         * @var Processor
-         */
-        $processor = $this->createProcessorObject($processorConsumer, $class);
-
-        $processor->validateProcessor();
-
-        return $processor;
     }
 
     /**
@@ -483,25 +449,25 @@ final class Consumer
              * @var Worker $processor
              */
             foreach ($this->getProcessorItems((string)$this->queue::METHOD_JOB_WORKER) as $processor) {
-                $workersKey = $processor->getQueueName().$consumerIdentify;
+                $key = $processor->getQueueName().$consumerIdentify;
 
-                if (array_key_exists($workersKey, $workers)) {
+                if (array_key_exists($key, $workers)) {
                     continue;
                 }
 
-                if (array_key_exists($workersKey, $all)) {
+                if (array_key_exists($key, $all)) {
                     throw new \LogicException(sprintf('Duplicate queue for creating worker method: %s', $processor->getQueueName()));
                 }
 
                 $this->queue->setQos(0, $processorConsumer->getPrefetchCount(), false);
 
-                $queue = $this->queue->createQueue($processor->getQueueName(), $processorConsumer->durableQueue());
+                $queue = $this->queue->createQueue($processor->getQueueName(), $processor->durableQueue(), $processor->getQueueTtl());
                 $queue->setArgument('x-single-active-consumer', $processorConsumer->getSingleActiveConsumer());
 
                 $this->queue->declareQueue($queue);
 
-                $workers[$workersKey] = true;
-                $all[$workersKey] = true;
+                $workers[$key] = true;
+                $all[$key] = true;
 
                 yield $consumerIdentify => $this->queue->createConsumer($queue);
 
@@ -512,24 +478,24 @@ final class Consumer
              * @var Command $processor
              */
             foreach ($this->getProcessorItems((string)$this->queue::METHOD_JOB_COMMAND) as $processor) {
-                $commandKey = $processor->getQueueName().$consumerIdentify;
+                $key = $processor->getQueueName().$consumerIdentify;
 
-                if (array_key_exists($commandKey, $commands)) {
+                if (array_key_exists($key, $commands)) {
                     continue;
                 }
 
-                if (array_key_exists($commandKey, $all)) {
+                if (array_key_exists($key, $all)) {
                     throw new \LogicException(sprintf('Duplicate queue for creating command method: %s', $processor->getQueueName()));
                 }
 
                 $this->queue->setQos(0, $processorConsumer->getPrefetchCount(), false);
 
-                $queue = $this->queue->createQueue($processor->getQueueName(), false);
+                $queue = $this->queue->createQueue($processor->getQueueName(), false, $processor->getQueueTtl());
                 $queue->setArgument('x-single-active-consumer', $processorConsumer->getSingleActiveConsumer());
                 $this->queue->declareQueue($queue);
 
-                $commands[$commandKey] = true;
-                $all[$commandKey] = true;
+                $commands[$key] = true;
+                $all[$key] = true;
 
                 yield $consumerIdentify => $this->queue->createConsumer($queue);
 
@@ -540,17 +506,17 @@ final class Consumer
              * @var Emit $processor
              */
             foreach ($this->getProcessorItems((string)$this->queue::METHOD_JOB_EMIT) as $processor) {
-                $emitKey = $processor->getQueueName().$consumerIdentify;
+                $key = $processor->getQueueName().$consumerIdentify;
 
-                if (array_key_exists($emitKey, $emits)) {
+                if (array_key_exists($key, $emits)) {
                     continue;
                 }
 
-                if (array_key_exists($emitKey, $all)) {
+                if (array_key_exists($key, $all)) {
                     throw new \LogicException(sprintf('Duplicate queue for creating emit method: %s', $processor->getQueueName()));
                 }
 
-                $queue = $this->queue->createQueue($processor->getQueueName(), $processorConsumer->durableQueue());
+                $queue = $this->queue->createQueue($processor->getQueueName(), $processor->durableQueue(), $processor->getQueueTtl());
                 $queue->setArgument('x-single-active-consumer', true);
                 $this->queue->declareQueue($queue);
 
@@ -558,11 +524,9 @@ final class Consumer
                 $topic->setType(AmqpTopic::TYPE_FANOUT);
                 $this->queue->declareTopic($topic);
                 $this->queue->bind($topic, $queue);
-
-                //$this->queue->getLogger()->info(sprintf('Emit [queue: %s] and [topic: %s] Binded', $queue->getQueueName(), $processor->getTopicName()));
-
-                $emits[$emitKey] = true;
-                $all[$emitKey] = true;
+                
+                $emits[$key] = true;
+                $all[$key] = true;
 
                 yield $consumerIdentify => $this->queue->createConsumer($queue);
             }
@@ -571,17 +535,17 @@ final class Consumer
              * @var Topic $processor
              */
             foreach ($this->getProcessorItems((string)$this->queue::METHOD_JOB_TOPIC) as $processor) {
-                $topicKey = $processor->getQueueName().$consumerIdentify;
+                $key = $processor->getQueueName().$consumerIdentify;
 
-                if (array_key_exists($topicKey, $topics)) {
+                if (array_key_exists($key, $topics)) {
                     continue;
                 }
 
-                if (array_key_exists($topicKey, $all)) {
+                if (array_key_exists($key, $all)) {
                     throw new \LogicException(sprintf('Duplicate queue for creating topic method: %s', $processor->getQueueName()));
                 }
 
-                $queue = $this->queue->createQueue($processor->getQueueName(), $processorConsumer->durableQueue());
+                $queue = $this->queue->createQueue($processor->getQueueName(), $processor->durableQueue(), $processor->getQueueTtl());
                 $queue->setArgument('x-single-active-consumer', true);
                 $this->queue->declareQueue($queue);
 
@@ -596,8 +560,8 @@ final class Consumer
                     $this->queue->bind($topic, $queue, $routingKey);
                 }
 
-                $topics[$topicKey] = true;
-                $all[$topicKey] = true;
+                $topics[$key] = true;
+                $all[$key] = true;
 
                 yield $consumerIdentify => $this->queue->createConsumer($queue);
             }
@@ -681,7 +645,7 @@ final class Consumer
      */
     private function addProcessor(string $method, Processor $processor): void
     {
-        $objectLocationKey = spl_object_id($processor);
+        $objectLocationKey = $this->hashKey($processor::class);
 
         $this->processors[$method][$objectLocationKey] = $processor;
 

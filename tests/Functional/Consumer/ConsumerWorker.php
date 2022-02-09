@@ -19,8 +19,4 @@ final class ConsumerWorker extends ProcessorConsumer
         yield \Araz\MicroService\Tests\Functional\Processor\Worker\UserProfileAnalysisWorker::class;
     }
 
-    public function durableQueue(): bool
-    {
-        return false;
-    }
 }

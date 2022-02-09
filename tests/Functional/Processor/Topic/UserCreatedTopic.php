@@ -31,4 +31,9 @@ final class UserCreatedTopic extends Topic
     {
         return sprintf('%s.user_created_topic', $this->getQueue()->getAppName());
     }
+
+    public function durableQueue(): bool
+    {
+        return false;
+    }
 }
