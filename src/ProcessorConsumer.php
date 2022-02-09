@@ -23,11 +23,8 @@ abstract class ProcessorConsumer
      */
     public const MAX_RETRY_REDELIVER_DELAY = 0;
 
-    protected Queue $queue;
-
-    public function __construct(Queue $queue)
+    public function __construct(protected Queue $queue)
     {
-        $this->queue = $queue;
     }
 
     /**
@@ -130,18 +127,5 @@ abstract class ProcessorConsumer
     public function getPrefetchCount(): int
     {
         return 1;
-    }
-
-    /**
-     * Set a consumer queue is durable
-     * Just for worker, topic, emit
-     * Command is not durable by default
-     *
-     * @return bool
-     *
-     */
-    public function durableQueue(): bool
-    {
-        return true;
     }
 }

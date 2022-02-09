@@ -51,4 +51,15 @@ abstract class Topic extends Processor
             throw new \LogicException(sprintf('Loading topics, Routing key is required: %s', get_called_class()));
         }
     }
+
+    /**
+     * Set queue is durable
+     *
+     * @return bool
+     *
+     */
+    public function durableQueue(): bool
+    {
+        return true;
+    }
 }

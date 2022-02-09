@@ -39,4 +39,15 @@ abstract class Worker extends Processor
             throw new \LogicException(sprintf('Loading workers, Job name is required: %s', get_called_class()));
         }
     }
+
+    /**
+     * Set queue is durable
+     *
+     * @return bool
+     *
+     */
+    public function durableQueue(): bool
+    {
+        return true;
+    }
 }
