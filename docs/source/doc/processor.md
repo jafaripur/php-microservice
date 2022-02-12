@@ -219,7 +219,7 @@ final class UserCreatedTopic extends Topic
 - `getRoutingKeys()`: This should be implemented in topic class and is mandatory. Routing key name should topic listen to it. One topic class can listen to several routing key in same topic.
 - `durableQueue()`: Return boolean value. If returned value is true, defined queue will be durable.
 
-## Policy
+## Policies
 
 `Emit` and `Topic` method use [Single Active Consumer](https://www.rabbitmq.com/consumers.html#single-active-consumer) by default.
 This is because we may run multiple processes of the program in several nodes and we do not need to receive all of them and only once is enough to receive information for each processor.

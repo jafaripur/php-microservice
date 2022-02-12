@@ -38,9 +38,30 @@ $commandTimeout = 2000; // 2000 for timeout per message, This timeout is autorem
 $priority = 0;
 
 $commands = $queue->getSender()->async($asyncTimeout)
-    ->command($queueName, $jobName, ['id' => 1], 'test1_id_unique_1', $commandTimeout, $priority)
-    ->command($queueName, $jobName, ['id' => 2], 'test1_id_unique_2', $commandTimeout, $priority)
-    ->command($queueName, $jobName, ['id' => 3], 'test1_id_unique_3', $commandTimeout, $priority);
+    ->command(
+        queueName: $queueName,
+        jobName: $jobName,
+        data: ['id' => 1],
+        correlationId: 'test1_id_unique_1',
+        timeout: $commandTimeout,
+        priority: $priority
+    )
+    ->command(
+        queueName: $queueName,
+        jobName: $jobName,
+        data: ['id' => 2],
+        correlationId: 'test1_id_unique_2',
+        timeout: $commandTimeout,
+        priority: $priority
+    )
+    ->command(
+        queueName: $queueName,
+        jobName: $jobName,
+        data: ['id' => 3],
+        correlationId: 'test1_id_unique_3',
+        timeout: $commandTimeout,
+        priority: $priority
+    );
 
 
 // Do more action ...

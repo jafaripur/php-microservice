@@ -94,7 +94,7 @@ final class Consumer
         $this->initConsumers($consumers);
 
         $subscriptionConsumer = $this->queue->createSubscriptionConsumer();
-        $consumers = $this->getAailableConsumer();
+        $consumers = $this->getAvailableConsumer();
 
         /**
          * @var AmqpConsumer $consumer
@@ -160,21 +160,6 @@ final class Consumer
         /**
          * @var string
          */
-        $job = MessageProperty::getJob($message, '');
-
-        /**
-         * @var string
-         */
-        $topic = MessageProperty::getTopic($message, '');
-
-        /**
-         * @var string
-         */
-        $queueName = MessageProperty::getQueue($message, '');
-
-        /**
-         * @var string
-         */
         $serialize = MessageProperty::getSerializer($message, '');
 
         $serializer = $this->queue->getSerializer($serialize, true);
@@ -191,17 +176,7 @@ final class Consumer
             return $this->returnReceiveCallbackResult(true, $method);
         }
 
-        /**
-         * @var string $routingKey
-         */
-        $routingKey = '';
-        if ($method == $this->queue::METHOD_JOB_TOPIC) {
-            $routingKey = (string)$message->getRoutingKey();
-        }
-
-        $processor = $this->getProcessorItem($method, $queueName, $topic, $routingKey, $job);
-
-        if (!$processor) {
+        if (!$processor = $this->getReceivedMessageProcessor($method, $message)) {
             $consumer->reject($message, true);
             $this->queue->getLogger()->error('Processor not found!', [
                 $message->getProperties() + $message->getHeaders(),
@@ -227,26 +202,19 @@ final class Consumer
             return $this->returnReceiveCallbackResult(true, $method, $processor);
         }
 
-        $executeResult = $processor->isTopic() ? $processor->execute($routingKey, $messageData) : $processor->execute($messageData);
+        $executeResult = $processor->isTopic() ? $processor->execute($message->getRoutingKey(), $messageData) : $processor->execute($messageData);
 
         $processor->afterExecute($messageData);
 
         /**
          * @var string $ackResult
          */
-        switch ($ackResult = $processor->process($message, $consumer)) {
-            case Processor::ACK:
-                $consumer->acknowledge($message);
-                break;
-            case Processor::REJECT:
-                $consumer->reject($message, false);
-                break;
-            case Processor::REQUEUE:
-                $consumer->reject($message, true);
-                break;
-            default:
-                throw new \LogicException(sprintf('Acknowledge status is not supported: %s', $ackResult));
-        }
+        match ($ackResult = $processor->process($message, $consumer)) {
+            Processor::ACK => $consumer->acknowledge($message),
+            Processor::REJECT => $consumer->reject($message, false),
+            Processor::REQUEUE => $consumer->reject($message, true),
+            default => throw new \LogicException(sprintf('Acknowledge status is not supported: %s', $ackResult))
+        };
 
         $processor->afterMessageAcknowledge($ackResult);
         $processorConsumer->afterMessageAcknowledge($processor, $ackResult, $message, $consumer);
@@ -256,6 +224,48 @@ final class Consumer
         }
 
         return $this->returnReceiveCallbackResult(true, $method, $processor);
+    }
+
+    /**
+     * Load related processor from received message
+     *
+     * @param  string      $method
+     * @param  AmqpMessage $message
+     * @return Processor|null
+     */
+    private function getReceivedMessageProcessor(string $method, AmqpMessage $message): ?Processor
+    {
+        /**
+         * @var string
+         */
+        $queueName = '';
+
+        /**
+         * @var string $routingKey
+         */
+        $routingKey = '';
+
+        /**
+         * @var string
+         */
+        $topic = '';
+
+        /**
+         * @var string
+         */
+        $job = '';
+
+        if ($method == $this->queue::METHOD_JOB_TOPIC || $method == $this->queue::METHOD_JOB_EMIT) {
+            $topic = MessageProperty::getTopic($message, '');
+            if ($method == $this->queue::METHOD_JOB_TOPIC) {
+                $routingKey = (string)$message->getRoutingKey();
+            }
+        } elseif ($method == $this->queue::METHOD_JOB_WORKER || $method == $this->queue::METHOD_JOB_COMMAND) {
+            $queueName = MessageProperty::getQueue($message, '');
+            $job = MessageProperty::getJob($message, '');
+        }
+
+        return $this->getProcessorItem($method, $queueName, $topic, $routingKey, $job);
     }
 
     /**
@@ -406,9 +416,7 @@ final class Consumer
                 throw new \LogicException(sprintf('Processor not support: %s', $class));
             }
 
-            $processor = $this->createProcessorObject($processorConsume, $class);
-
-            $this->addProcessor($method, $processor);
+            $this->addProcessor($method, $this->createProcessorObject($processorConsume, $class));
             $this->queue->getLogger()->info(sprintf('Processor loaded: %s', $class));
         }
     }
@@ -438,7 +446,7 @@ final class Consumer
      *
      * @psalm-return Generator<string, AmqpConsumer>
      */
-    private function getAailableConsumer(): Generator
+    private function getAvailableConsumer(): Generator
     {
         $commands = [];
         $workers = [];
@@ -462,19 +470,10 @@ final class Consumer
                     throw new \LogicException(sprintf('Duplicate queue for creating worker method: %s', $processor->getQueueName()));
                 }
 
-                $this->queue->setQos(0, $processorConsumer->getPrefetchCount(), false);
-
-                $queue = $this->queue->createQueue($processor->getQueueName(), $processor->durableQueue(), $processor->getQueueTtl());
-                $queue->setArgument('x-single-active-consumer', $processorConsumer->getSingleActiveConsumer());
-
-                $this->queue->declareQueue($queue);
-
                 $workers[$key] = true;
                 $all[$key] = true;
 
-                yield $consumerIdentify => $this->queue->createConsumer($queue);
-
-                $this->queue->setQos(0, 1, false);
+                yield $consumerIdentify => $this->createWorkerConsumer($processorConsumer, $processor);
             }
 
             /**
@@ -491,18 +490,10 @@ final class Consumer
                     throw new \LogicException(sprintf('Duplicate queue for creating command method: %s', $processor->getQueueName()));
                 }
 
-                $this->queue->setQos(0, $processorConsumer->getPrefetchCount(), false);
-
-                $queue = $this->queue->createQueue($processor->getQueueName(), false, $processor->getQueueTtl());
-                $queue->setArgument('x-single-active-consumer', $processorConsumer->getSingleActiveConsumer());
-                $this->queue->declareQueue($queue);
-
                 $commands[$key] = true;
                 $all[$key] = true;
 
-                yield $consumerIdentify => $this->queue->createConsumer($queue);
-
-                $this->queue->setQos(0, 1, false);
+                yield $consumerIdentify => $this->createCommandConsumer($processorConsumer, $processor);
             }
 
             /**
@@ -519,19 +510,10 @@ final class Consumer
                     throw new \LogicException(sprintf('Duplicate queue for creating emit method: %s', $processor->getQueueName()));
                 }
 
-                $queue = $this->queue->createQueue($processor->getQueueName(), $processor->durableQueue(), $processor->getQueueTtl());
-                $queue->setArgument('x-single-active-consumer', true);
-                $this->queue->declareQueue($queue);
-
-                $topic = $this->queue->createTopic($processor->getTopicName());
-                $topic->setType(AmqpTopic::TYPE_FANOUT);
-                $this->queue->declareTopic($topic);
-                $this->queue->bind($topic, $queue);
-
                 $emits[$key] = true;
                 $all[$key] = true;
 
-                yield $consumerIdentify => $this->queue->createConsumer($queue);
+                yield $consumerIdentify => $this->createEmitConsumer($processorConsumer, $processor);
             }
 
             /**
@@ -548,25 +530,10 @@ final class Consumer
                     throw new \LogicException(sprintf('Duplicate queue for creating topic method: %s', $processor->getQueueName()));
                 }
 
-                $queue = $this->queue->createQueue($processor->getQueueName(), $processor->durableQueue(), $processor->getQueueTtl());
-                $queue->setArgument('x-single-active-consumer', true);
-                $this->queue->declareQueue($queue);
-
-                $topic = $this->queue->createTopic($processor->getTopicName());
-                $topic->setType(AmqpTopic::TYPE_DIRECT);
-                $this->queue->declareTopic($topic);
-
-                /**
-                 * @var string $routingKey
-                 */
-                foreach ($processor->getRoutingKeys() as  $routingKey) {
-                    $this->queue->bind($topic, $queue, $routingKey);
-                }
-
                 $topics[$key] = true;
                 $all[$key] = true;
 
-                yield $consumerIdentify => $this->queue->createConsumer($queue);
+                yield $consumerIdentify => $this->createTopicConsumer($processorConsumer, $processor);
             }
         }
 
@@ -665,41 +632,136 @@ final class Consumer
      */
     private function generateObjectIdentify(string $method, int $objectLocationKey, $processor): void
     {
-        $queue = '';
-        $job = '';
-        $topic = '';
-        $routingKeys = [];
+        $keys = [];
 
         switch ($method) {
             case $this->queue::METHOD_JOB_COMMAND:
             case $this->queue::METHOD_JOB_WORKER:
                 /** @var Worker|Command $processor */
-                $queue = $processor->getQueueName();
-                $job = $processor->getJobName();
+                $keys[] = $this->getProcessorKey($method, $processor->getQueueName(), '', '', $processor->getJobName());
                 break;
             case $this->queue::METHOD_JOB_EMIT:
                 /** @var Emit $processor */
-                $topic = $processor->getTopicName();
+                $keys[] = $this->getProcessorKey($method, '', $processor->getTopicName(), '', '');
                 break;
             case $this->queue::METHOD_JOB_TOPIC:
                 /** @var Topic $processor */
-                $topic = $processor->getTopicName();
-                $routingKeys = $processor->getRoutingKeys();
+                foreach ($processor->getRoutingKeys() as $routingKey) {
+                    $keys[] = $this->getProcessorKey($method, '', $processor->getTopicName(), $routingKey, '');
+                }
                 break;
+            default:
+                throw new \LogicException(sprintf('Method is not supported: %s', $method));
         }
 
-        if (count($routingKeys)) {
-            /**
-             * @var string $routingKey
-             */
-            foreach ($routingKeys as $routingKey) {
-                $this->processorsMapping[$this->getProcessorKey($method, $queue, $topic, $routingKey, $job)] = $objectLocationKey;
-            }
-        } else {
-            $this->processorsMapping[$this->getProcessorKey($method, $queue, $topic, '', $job)] = $objectLocationKey;
+        foreach ($keys as $key) {
+            $this->processorsMapping[$key] = $objectLocationKey;
         }
     }
 
+    /**
+     * Create consumer for worker
+     *
+     * @param  ProcessorConsumer $processorConsumer 
+     * @param  Worker            $processor         
+     * @return AmqpConsumer                         
+     */
+    private function createWorkerConsumer(ProcessorConsumer $processorConsumer, Worker $processor): AmqpConsumer
+    {
+        $this->queue->setQos(0, $processorConsumer->getPrefetchCount(), false);
+
+        $queue = $this->queue->createQueue($processor->getQueueName(), $processor->durableQueue(), $processor->getQueueTtl());
+        $queue->setArgument('x-single-active-consumer', $processorConsumer->getSingleActiveConsumer());
+
+        $this->queue->declareQueue($queue);
+
+        $this->queue->setQos(0, 1, false);
+
+        return $this->queue->createConsumer($queue);
+    }
+
+    /**
+     * Create consumer for command
+     *
+     * @param  ProcessorConsumer $processorConsumer 
+     * @param  Command           $processor         
+     * @return AmqpConsumer                         
+     */
+    private function createCommandConsumer(ProcessorConsumer $processorConsumer, Command $processor): AmqpConsumer
+    {
+        $this->queue->setQos(0, $processorConsumer->getPrefetchCount(), false);
+
+        $queue = $this->queue->createQueue($processor->getQueueName(), false, $processor->getQueueTtl());
+        $queue->setArgument('x-single-active-consumer', $processorConsumer->getSingleActiveConsumer());
+        $this->queue->declareQueue($queue);
+
+        $this->queue->setQos(0, 1, false);
+
+        return $this->queue->createConsumer($queue);
+    }
+
+    /**
+     * Create consumer for emit
+     *
+     * @param  ProcessorConsumer $processorConsumer 
+     * @param  Emit              $processor         
+     * @return AmqpConsumer                         
+     */
+    private function createEmitConsumer(ProcessorConsumer $processorConsumer, Emit $processor): AmqpConsumer
+    {
+        $this->queue->setQos(0, $processorConsumer->getPrefetchCount(), false);
+
+        $queue = $this->queue->createQueue($processor->getQueueName(), $processor->durableQueue(), $processor->getQueueTtl());
+        $queue->setArgument('x-single-active-consumer', true);
+        $this->queue->declareQueue($queue);
+
+        $topic = $this->queue->createTopic($processor->getTopicName());
+        $topic->setType(AmqpTopic::TYPE_FANOUT);
+        $this->queue->declareTopic($topic);
+        $this->queue->bind($topic, $queue);
+
+        $this->queue->setQos(0, 1, false);
+
+        return $this->queue->createConsumer($queue);
+    }
+
+    /**
+     * Create consumer for topic
+     *
+     * @param  ProcessorConsumer $processorConsumer 
+     * @param  Topic             $processor         
+     * @return AmqpConsumer                         
+     */
+    private function createTopicConsumer(ProcessorConsumer $processorConsumer, Topic $processor): AmqpConsumer
+    {
+        $this->queue->setQos(0, $processorConsumer->getPrefetchCount(), false);
+
+        $queue = $this->queue->createQueue($processor->getQueueName(), $processor->durableQueue(), $processor->getQueueTtl());
+        $queue->setArgument('x-single-active-consumer', true);
+        $this->queue->declareQueue($queue);
+
+        $topic = $this->queue->createTopic($processor->getTopicName());
+        $topic->setType(AmqpTopic::TYPE_DIRECT);
+        $this->queue->declareTopic($topic);
+
+        /**
+         * @var string $routingKey
+         */
+        foreach ($processor->getRoutingKeys() as  $routingKey) {
+            $this->queue->bind($topic, $queue, $routingKey);
+        }
+
+        $this->queue->setQos(0, 1, false);
+
+        return $this->queue->createConsumer($queue);
+    }
+
+    /**
+     * Create integer hash
+     *
+     * @param  string  $key 
+     * @return integer      
+     */
     private function hashKey(string $key): int
     {
         return crc32($key);
