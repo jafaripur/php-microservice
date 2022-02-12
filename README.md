@@ -1,5 +1,8 @@
 # MicroService Server & Client
 
+![test](https://github.com/jafaripur/php-microservice/actions/workflows/run-test.yml/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/php-microservice/badge/?version=latest)](https://php-microservice.readthedocs.io/en/latest/?badge=latest)
+
 Standalone package to implement messaging between microservices nodes in PHP with both server and client.
 Server consumers listen to receive message and process, client pushing data to message queue to server consumers grab and process.
 
