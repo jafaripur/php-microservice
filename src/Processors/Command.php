@@ -42,7 +42,7 @@ abstract class Command extends Processor
     /**
      * @inheritDoc
      */
-    public function validateProcessor(): void
+    protected function validateProcessor(): void
     {
         if (!trim($this->getQueueName())) {
             throw new \LogicException(sprintf('Loading commands, Queue name is required: %s', get_called_class()));

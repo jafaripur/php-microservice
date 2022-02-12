@@ -23,6 +23,11 @@ abstract class Processor
     private Queue $queue;
     private ProcessorConsumer $processorConsumer;
 
+    public function init(): void
+    {
+        $this->validateProcessor();
+    }
+
     /**
      * Get current running queue object
      *
@@ -75,7 +80,7 @@ abstract class Processor
      *
      * @return void
      */
-    abstract public function validateProcessor(): void;
+    abstract protected function validateProcessor(): void;
 
     /**
      * Run after the afterExecute method with returning this value:

@@ -407,7 +407,6 @@ final class Consumer
             }
 
             $processor = $this->createProcessorObject($processorConsume, $class);
-            $processor->validateProcessor();
 
             $this->addProcessor($method, $processor);
             $this->queue->getLogger()->info(sprintf('Processor loaded: %s', $class));
@@ -428,6 +427,8 @@ final class Consumer
 
         $processor->setQueue($this->queue);
         $processor->setProcessorConsumer($processorConsumer);
+
+        $processor->init();
 
         return $processor;
     }
