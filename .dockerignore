@@ -12,3 +12,5 @@
 /docker-compose.yml
 /psalm.xml
 /phpunit.xml
+
+/docs

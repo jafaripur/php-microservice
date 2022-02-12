@@ -1,7 +1,6 @@
-# MicroService Server & Client
+# Introduction
 
-Standalone package to implement messaging between microservices nodes in PHP with both server and client.
-Server consumers listen to receive message and process, client pushing data to message queue to server consumers grab and process.
+With this structure we can define our processors class and listen to a specific action.
 
 ## Features
 
@@ -14,28 +13,14 @@ Server consumers listen to receive message and process, client pushing data to m
 - Each microservice could be a server or client and can talk to each other.
 - Client for sending messages to queue.
 
-## Installation
+## Install
 
 The preferred way to install this package is through composer:
 
-```bash
+```{code-block} bash
 
 composer require jafaripur/php-microservice
 
 ```
 
-## Documentation
-
-For more details, see full document [http://php-microservice.readthedocs.io/](http://php-microservice.readthedocs.io/).
-
-## Test
-
-```sh
-
-# Run test
-docker-compose up --build micro
-
-# Stop and remove created containers
-docker-compose down
-
-```
+Github: [https://github.com/jafaripur/php-microservice](https://github.com/jafaripur/php-microservice)
