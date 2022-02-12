@@ -5,6 +5,11 @@ build:
   tools:
     python: "3.9"
 
+formats:
+  - epub
+  - pdf
+  - htmlzip
+
 # Build from the docs/ directory with Sphinx
 sphinx:
   configuration: docs/source/conf.py

@@ -17,9 +17,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'PHP Micro-Service'
+project = 'PHP MicroService'
 copyright = '2022, Araz'
-author = 'Araz Jafaripur'
+author = 'Araz Jafaripur (mjafaripur@yahoo.com)'
 
 # -- General configuration ---------------------------------------------------
 
