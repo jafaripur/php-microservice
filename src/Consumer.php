@@ -189,20 +189,39 @@ final class Consumer
          */
         $messageData = $serializer->unserialize($message->getBody());
 
-        /**
-         * @var Command|Worker|Emit|Topic $processor
-         */
         if (!$processor->beforeExecute($messageData)) {
             $consumer->reject($message, false);
 
             if ($processor->isCommand()) {
+                /**
+                 * @var Command $processor
+                 */
                 $processor->afterMessageReplytoCommand($message->getMessageId(), $this->replyBackMessage($message, null, Processor::REJECT), $message->getCorrelationId(), Processor::REJECT);
             }
 
             return $this->returnReceiveCallbackResult(true, $method, $processor);
         }
 
-        $executeResult = $processor->isTopic() ? $processor->execute($message->getRoutingKey(), $messageData) : $processor->execute($messageData);
+        $executeResult = null;
+
+        if ($processor->isTopic()) {
+            /**
+             * @var Topic $processor
+             */
+            $processor->execute($message->getRoutingKey(), $messageData);
+        } elseif ($processor->isCommand()) {
+            /**
+             * @var Command $processor
+             */
+            $executeResult = $processor->execute($messageData);
+        } else {
+            /**
+             * @var Emit|Worker $processor
+             */
+            $processor->execute($messageData);
+        }
+
+        //$executeResult = $processor->isTopic() ? $processor->execute($message->getRoutingKey(), $messageData) : $processor->execute($messageData);
 
         $processor->afterExecute($messageData);
 
@@ -265,7 +284,7 @@ final class Consumer
             $job = MessageProperty::getJob($message, '');
         }
 
-        return $this->getProcessorItem($method, $queueName, $topic, $routingKey, $job);
+        return $this->findProcessor($method, $queueName, $topic, $routingKey, $job);
     }
 
     /**
@@ -416,8 +435,10 @@ final class Consumer
                 throw new \LogicException(sprintf('Processor not support: %s', $class));
             }
 
-            $this->addProcessor($method, $this->createProcessorObject($processorConsume, $class));
-            $this->queue->getLogger()->info(sprintf('Processor loaded: %s', $class));
+            if (!$this->getProcessor($method, $class)) {
+                $this->addProcessor($method, $this->createProcessorObject($processorConsume, $class));
+                $this->queue->getLogger()->info(sprintf('Processor loaded: %s', $class));
+            }
         }
     }
 
@@ -459,7 +480,7 @@ final class Consumer
             /**
              * @var Worker $processor
              */
-            foreach ($this->getProcessorItems((string)$this->queue::METHOD_JOB_WORKER) as $processor) {
+            foreach ($this->getProcessors((string)$this->queue::METHOD_JOB_WORKER) as $processor) {
                 $key = $processor->getQueueName().$consumerIdentify;
 
                 if (array_key_exists($key, $workers)) {
@@ -479,7 +500,7 @@ final class Consumer
             /**
              * @var Command $processor
              */
-            foreach ($this->getProcessorItems((string)$this->queue::METHOD_JOB_COMMAND) as $processor) {
+            foreach ($this->getProcessors((string)$this->queue::METHOD_JOB_COMMAND) as $processor) {
                 $key = $processor->getQueueName().$consumerIdentify;
 
                 if (array_key_exists($key, $commands)) {
@@ -499,7 +520,7 @@ final class Consumer
             /**
              * @var Emit $processor
              */
-            foreach ($this->getProcessorItems((string)$this->queue::METHOD_JOB_EMIT) as $processor) {
+            foreach ($this->getProcessors((string)$this->queue::METHOD_JOB_EMIT) as $processor) {
                 $key = $processor->getQueueName().$consumerIdentify;
 
                 if (array_key_exists($key, $emits)) {
@@ -519,7 +540,7 @@ final class Consumer
             /**
              * @var Topic $processor
              */
-            foreach ($this->getProcessorItems((string)$this->queue::METHOD_JOB_TOPIC) as $processor) {
+            foreach ($this->getProcessors((string)$this->queue::METHOD_JOB_TOPIC) as $processor) {
                 $key = $processor->getQueueName().$consumerIdentify;
 
                 if (array_key_exists($key, $topics)) {
@@ -577,7 +598,7 @@ final class Consumer
     }
 
     /**
-     * Get processor based on parameters received from message broker
+     * Find processor based on parameters received from message broker
      *
      * @param  string    $method
      * @param  string    $queueName
@@ -586,7 +607,7 @@ final class Consumer
      * @param  string    $jobName
      * @return Processor|null
      */
-    private function getProcessorItem(string $method, string $queueName, string $topicName, string $routingKey, string $jobName): ?Processor
+    private function findProcessor(string $method, string $queueName, string $topicName, string $routingKey, string $jobName): ?Processor
     {
         $key = $this->getProcessorKey($method, $queueName, $topicName, $routingKey, $jobName);
 
@@ -601,7 +622,7 @@ final class Consumer
      * @param  string $method
      * @return array<int, Processor>
      */
-    private function getProcessorItems(string $method): array
+    private function getProcessors(string $method): array
     {
         return $this->processors[$method] ?? [];
     }
@@ -619,7 +640,20 @@ final class Consumer
 
         $this->processors[$method][$objectLocationKey] = $processor;
 
-        $this->generateObjectIdentify($method, $objectLocationKey, $processor);
+        $this->generateProcessorIdentity($method, $objectLocationKey, $processor);
+    }
+
+    /**
+     * Get processor by method and class name
+     *
+     * @param  string         $method
+     * @param  string         $class
+     * @return Processor|null
+     */
+    private function getProcessor(string $method, string $class): ?Processor
+    {
+        $objectLocationKey = $this->hashKey($class);
+        return $this->processors[$method][$objectLocationKey] ?? null;
     }
 
     /**
@@ -630,7 +664,7 @@ final class Consumer
      * @param  Processor $processor
      * @return void
      */
-    private function generateObjectIdentify(string $method, int $objectLocationKey, $processor): void
+    private function generateProcessorIdentity(string $method, int $objectLocationKey, $processor): void
     {
         $keys = [];
 
@@ -662,9 +696,9 @@ final class Consumer
     /**
      * Create consumer for worker
      *
-     * @param  ProcessorConsumer $processorConsumer 
-     * @param  Worker            $processor         
-     * @return AmqpConsumer                         
+     * @param  ProcessorConsumer $processorConsumer
+     * @param  Worker            $processor
+     * @return AmqpConsumer
      */
     private function createWorkerConsumer(ProcessorConsumer $processorConsumer, Worker $processor): AmqpConsumer
     {
@@ -683,9 +717,9 @@ final class Consumer
     /**
      * Create consumer for command
      *
-     * @param  ProcessorConsumer $processorConsumer 
-     * @param  Command           $processor         
-     * @return AmqpConsumer                         
+     * @param  ProcessorConsumer $processorConsumer
+     * @param  Command           $processor
+     * @return AmqpConsumer
      */
     private function createCommandConsumer(ProcessorConsumer $processorConsumer, Command $processor): AmqpConsumer
     {
@@ -703,9 +737,9 @@ final class Consumer
     /**
      * Create consumer for emit
      *
-     * @param  ProcessorConsumer $processorConsumer 
-     * @param  Emit              $processor         
-     * @return AmqpConsumer                         
+     * @param  ProcessorConsumer $processorConsumer
+     * @param  Emit              $processor
+     * @return AmqpConsumer
      */
     private function createEmitConsumer(ProcessorConsumer $processorConsumer, Emit $processor): AmqpConsumer
     {
@@ -728,9 +762,9 @@ final class Consumer
     /**
      * Create consumer for topic
      *
-     * @param  ProcessorConsumer $processorConsumer 
-     * @param  Topic             $processor         
-     * @return AmqpConsumer                         
+     * @param  ProcessorConsumer $processorConsumer
+     * @param  Topic             $processor
+     * @return AmqpConsumer
      */
     private function createTopicConsumer(ProcessorConsumer $processorConsumer, Topic $processor): AmqpConsumer
     {
@@ -759,8 +793,8 @@ final class Consumer
     /**
      * Create integer hash
      *
-     * @param  string  $key 
-     * @return integer      
+     * @param  string  $key
+     * @return integer
      */
     private function hashKey(string $key): int
     {
