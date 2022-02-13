@@ -640,7 +640,9 @@ final class Consumer
 
         $this->processors[$method][$objectLocationKey] = $processor;
 
-        $this->generateProcessorIdentity($method, $objectLocationKey, $processor);
+        foreach ($this->generateProcessorIdentity($method, $processor) as $key) {
+            $this->processorsMapping[$key] = $objectLocationKey;
+        }
     }
 
     /**
@@ -660,36 +662,29 @@ final class Consumer
      * Generate identify for processor
      *
      * @param  string $method
-     * @param  string $objectLocationKey
      * @param  Processor $processor
-     * @return void
+     * @return Generator
      */
-    private function generateProcessorIdentity(string $method, int $objectLocationKey, $processor): void
+    private function generateProcessorIdentity(string $method, $processor): Generator
     {
-        $keys = [];
-
         switch ($method) {
             case $this->queue::METHOD_JOB_COMMAND:
             case $this->queue::METHOD_JOB_WORKER:
                 /** @var Worker|Command $processor */
-                $keys[] = $this->getProcessorKey($method, $processor->getQueueName(), '', '', $processor->getJobName());
+                yield $this->getProcessorKey($method, $processor->getQueueName(), '', '', $processor->getJobName());
                 break;
             case $this->queue::METHOD_JOB_EMIT:
                 /** @var Emit $processor */
-                $keys[] = $this->getProcessorKey($method, '', $processor->getTopicName(), '', '');
+                yield $this->getProcessorKey($method, '', $processor->getTopicName(), '', '');
                 break;
             case $this->queue::METHOD_JOB_TOPIC:
                 /** @var Topic $processor */
                 foreach ($processor->getRoutingKeys() as $routingKey) {
-                    $keys[] = $this->getProcessorKey($method, '', $processor->getTopicName(), $routingKey, '');
+                    yield $this->getProcessorKey($method, '', $processor->getTopicName(), $routingKey, '');
                 }
                 break;
             default:
                 throw new \LogicException(sprintf('Method is not supported: %s', $method));
-        }
-
-        foreach ($keys as $key) {
-            $this->processorsMapping[$key] = $objectLocationKey;
         }
     }
 
