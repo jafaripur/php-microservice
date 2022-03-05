@@ -419,21 +419,16 @@ final class Consumer
      */
     private function createProcessorsOfConsumer(ProcessorConsumer $processorConsume): void
     {
+
         /**
          * @var string $class
          */
         foreach ($processorConsume->getProcessors() as $class) {
-            if (is_subclass_of($class, Command::class)) {
-                $method = $this->queue::METHOD_JOB_COMMAND;
-            } elseif (is_subclass_of($class, Worker::class)) {
-                $method = $this->queue::METHOD_JOB_WORKER;
-            } elseif (is_subclass_of($class, Topic::class)) {
-                $method = $this->queue::METHOD_JOB_TOPIC;
-            } elseif (is_subclass_of($class, Emit::class)) {
-                $method = $this->queue::METHOD_JOB_EMIT;
-            } else {
+            if (!is_subclass_of($class, Processor::class)) {
                 throw new \LogicException(sprintf('Processor not support: %s', $class));
             }
+
+            $method = $class::getType();
 
             if (!$this->getProcessor($method, $class)) {
                 $this->addProcessor($method, $this->createProcessorObject($processorConsume, $class));

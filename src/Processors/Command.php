@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Araz\MicroService\Processors;
 
 use Araz\MicroService\Processor;
+use Araz\MicroService\Queue;
 
 /**
  * @inheritDoc
@@ -37,6 +38,14 @@ abstract class Command extends Processor
      */
     public function afterMessageReplytoCommand(?string $messageId, ?string $replyId, ?string $correlationId, string $status): void
     {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    final public static function getType(): string
+    {
+        return Queue::METHOD_JOB_COMMAND;
     }
 
     /**
