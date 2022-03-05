@@ -42,9 +42,8 @@ class ConsumerTest extends TestCase
     public function testConsumer(Queue $queue)
     {
         $queue->removeSerializer(MessagePackSerializer::class);
-        
+
         $queue->getConsumer()->consume();
         $this->assertEquals(true, true);
     }
-
 }

@@ -11,7 +11,6 @@ use Interop\Amqp\Impl\AmqpMessage;
 
 final class UserLoggedInEmit extends Emit
 {
-
     private $events = [
         'id' => '',
         'data' => '',
@@ -72,7 +71,6 @@ final class UserLoggedInEmit extends Emit
 
     public function processorFinished(?string $result): void
     {
-
         $this->events['processorFinished'] = $result;
 
         $this->getQueue()->getClient()->worker()

@@ -198,7 +198,7 @@ class WorkerTest extends TestCase
             ->send();
 
         usleep(50 * 1000);
-        
+
         $this->queue->getConsumer()->consume(20);
 
         $this->assertEquals(UserProfileAnalysisTestWorker::$receivedData, null);
@@ -217,7 +217,7 @@ class WorkerTest extends TestCase
 
         $this->queue->getConsumer()->consume(50);
         $this->assertEquals(UserProfileAnalysisTestWorker::$receivedData, null);
-        
+
         $this->queue->getConsumer()->consume(80);
         $this->assertEquals(UserProfileAnalysisTestWorker::$receivedData, [
             'id' => $id,

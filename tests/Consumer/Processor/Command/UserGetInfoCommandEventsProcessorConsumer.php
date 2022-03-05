@@ -8,7 +8,6 @@ use Araz\MicroService\Processors\Command;
 
 final class UserGetInfoCommandEventsProcessorConsumer extends Command
 {
-    
     public function execute(mixed $body): mixed
     {
         return $body;

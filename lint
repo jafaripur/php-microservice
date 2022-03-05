@@ -6,4 +6,5 @@ php ./vendor/bin/phplint
 
 php ./vendor/bin/psalm
 
-php ./vendor/bin/phpunit
+php vendor/bin/phpunit --testsuit Unit
+#docker-compose up --build --exit-code-from micro micro

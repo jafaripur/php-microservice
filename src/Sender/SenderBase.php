@@ -28,7 +28,8 @@ abstract class SenderBase
 
     abstract public function send(): mixed;
 
-    public function getPassive(): bool {
-      return $this->passive;
+    public function getPassive(): bool
+    {
+        return $this->passive;
     }
 }

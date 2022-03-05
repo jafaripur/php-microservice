@@ -8,12 +8,11 @@ use Araz\MicroService\Processors\Worker;
 
 final class UserLoggedInTopicWorker extends Worker
 {
-    
     public static $receivedData;
 
     public function execute(mixed $body): void
     {
-        static::$receivedData = $body;    
+        static::$receivedData = $body;
     }
 
     public function getQueueName(): string

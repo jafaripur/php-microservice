@@ -75,7 +75,7 @@ final class EmitSender extends SenderBase
         if ($this->getPassive()) {
             $topic->addFlag(AmqpTopic::FLAG_PASSIVE);
         }
-        
+
         $this->queue->declareTopic($topic);
 
         $queue = $this->queue->createTemporaryQueue();

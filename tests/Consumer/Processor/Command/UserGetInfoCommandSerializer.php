@@ -12,7 +12,6 @@ use Interop\Amqp\AmqpMessage;
 
 final class UserGetInfoCommandSerializer extends Command
 {
-
     public function execute(mixed $body): mixed
     {
         $this->getQueue()->setDefaultSerializer(PhpSerializer::class);
@@ -33,9 +32,9 @@ final class UserGetInfoCommandSerializer extends Command
     {
         return false;
     }
-    
+
     public function processorFinished(?string $result): void
     {
-        $this->getQueue()->setDefaultSerializer(JsonSerializer::class);   
+        $this->getQueue()->setDefaultSerializer(JsonSerializer::class);
     }
 }

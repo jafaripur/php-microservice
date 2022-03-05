@@ -120,9 +120,7 @@ final class Consumer
 
     private function returnReceiveCallbackResult(bool $result, ?string $ackResult, string $method, ?Processor $processor = null): bool
     {
-        
         if ($processor) {
-
             $processor->processorFinished($ackResult);
             $processor->getProcessorConsumer()->processorFinished($ackResult);
 

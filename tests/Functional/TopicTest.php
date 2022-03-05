@@ -80,7 +80,7 @@ class TopicTest extends TestCase
             ->send();
 
         $this->queue->getConsumer()->consume(50);
-        
+
         $this->assertEquals(UserLoggedInTopicWorker::$receivedData, [
             'id' => $id,
             'routingKey' => 'user_topic_create',
@@ -112,7 +112,6 @@ class TopicTest extends TestCase
             'afterMessageAcknowledge' => Processor::ACK,
             'processorFinished' => Processor::ACK,
         ]);
-
     }
 
     public function testQueueSendAndReceiveTopicDelay()

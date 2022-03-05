@@ -131,7 +131,7 @@ final class CommandSender extends SenderBase
         if ($this->getPassive()) {
             $queue->addFlag(AmqpQueue::FLAG_PASSIVE);
         }
-        
+
         $this->queue->declareQueue($queue);
 
         $message = $this->queue->createMessage($this->data, false);
