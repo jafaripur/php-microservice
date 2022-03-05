@@ -16,6 +16,7 @@ For connecting to `RabbitMQ` and start consuming message, we should define a con
 - `getMaxRedeliveryRetry`: Maximum number of tries for redeliver message.
 - `getRedeliveryDelayTime`: In redeliver action, old message should be requeue again to queue for processing. If we need to push again message to queue in redeliver mode with delay, We can return the number of millisecond to make delay on redeliver message to queue.
 - `afterMessageAcknowledge(Processor $processor, string $status, AmqpMessage $message, AmqpConsumer $consumer)`: Run after message acknowledged.
+- `processorFinished(?string $status, Processor $processor)`: Will run before complete the processor. status can be : `ack`, `reject`, `requeue` and `null`. In redelivered status set to `null`. `$processor` is the handled processor. 
 - `getSingleActiveConsumer()` Enable [Single Active Consumer](https://www.rabbitmq.com/consumers.html#single-active-consumer) for current consumer and processors attached to it.
 - `getPrefetchCount()`: Set number of [prefetch-count](https://www.rabbitmq.com/consumer-prefetch.html) for this consumer and processors attached to it.
 
