@@ -2,8 +2,9 @@
 
 namespace Araz\MicroService\Tests\Functional;
 
+use Araz\MicroService\Processor;
 use Araz\MicroService\Queue;
-use Araz\MicroService\Tests\Functional\Processor\Worker\UserProfileAnalysisWorker;
+use Araz\MicroService\Tests\Functional\Processor\Worker\UserProfileAnalysisTestWorker;
 use PHPUnit\Framework\TestCase;
 
 class WorkerTest extends TestCase
@@ -24,7 +25,7 @@ class WorkerTest extends TestCase
                 true,
                 true,
                 [
-                    \Araz\MicroService\Tests\Functional\Consumer\ConsumerWorker::class,
+                    \Araz\MicroService\Tests\Functional\Consumer\Worker\ConsumerWorkerResult::class,
                 ]
             );
 
@@ -88,15 +89,23 @@ class WorkerTest extends TestCase
     {
         $data = ['id' => 123];
 
-        $this->queue->getClient()->worker()
+        $id = $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
             ->setData($data)
             ->send();
 
-        $this->queue->getConsumer()->consume(1);
+        $this->queue->getConsumer()->consume(50);
 
-        $this->assertEquals(UserProfileAnalysisWorker::$receivedData, $data);
+        $this->assertEquals(UserProfileAnalysisTestWorker::$receivedData, [
+            'id' => $id,
+            'data' => $data,
+            'process' => Processor::ACK,
+            'beforeExecute' => $data,
+            'afterExecute' => $data,
+            'afterMessageAcknowledge' => Processor::ACK,
+            'processorFinished' => Processor::ACK,
+        ]);
     }
 
     public function testQueueSendAndReceiveWorkerPriority()
@@ -104,84 +113,120 @@ class WorkerTest extends TestCase
         $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
-            ->setData(['id' => 123456])
+            ->setData(['id' => 123456, 'priority' => 4])
             ->setPriority(4)
             ->send();
 
         $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
-            ->setData(['id' => 1234])
-            ->setPriority(4)
+            ->setData(['id' => 1234, 'priority' => 5])
+            ->setPriority(5)
             ->send();
 
         $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
-            ->setData(['id' => 1235])
+            ->setData(['id' => 1235, 'priority' => 1])
             ->setPriority(1)
             ->send();
 
-        $this->queue->getClient()->worker()
+        $id = $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
-            ->setData(['id' => 123522])
+            ->setData(['id' => 123522, 'priority' => 0])
             ->setPriority(0)
             ->send();
 
         $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
-            ->setData(['id' => 1236])
+            ->setData(['id' => 1236, 'priority' => 2])
             ->setPriority(2)
             ->send();
 
-        $this->queue->getConsumer()->consume(100);
+        UserProfileAnalysisTestWorker::$receivedData = null;
 
-        $this->assertEquals(UserProfileAnalysisWorker::$receivedData, ['id' => 123522]);
+        $this->queue->getConsumer()->consume(1000);
+
+        $this->assertEquals(UserProfileAnalysisTestWorker::$receivedData, [
+            'id' => $id,
+            'data' => ['id' => 123522, 'priority' => 0],
+            'process' => Processor::ACK,
+            'beforeExecute' => ['id' => 123522, 'priority' => 0],
+            'afterExecute' => ['id' => 123522, 'priority' => 0],
+            'afterMessageAcknowledge' => Processor::ACK,
+            'processorFinished' => Processor::ACK,
+        ]);
     }
 
     public function testQueueSendAndReceiveWorkerExpire()
     {
-        UserProfileAnalysisWorker::$receivedData = null;
-        $this->queue->getClient()->worker()
+        UserProfileAnalysisTestWorker::$receivedData = null;
+
+        $data = ['id' => 123456, 'expire' => 2000];
+
+        $id = $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
-            ->setData(['id' => 123456])
-            ->setExpiration(1000)
+            ->setData($data)
+            ->setExpiration(2000)
             ->send();
 
-        $this->queue->getConsumer()->consume(1);
-        $this->assertEquals(UserProfileAnalysisWorker::$receivedData, ['id' => 123456]);
+        $this->queue->getConsumer()->consume(20);
 
-        UserProfileAnalysisWorker::$receivedData = null;
-        $this->queue->getClient()->worker()
+        $this->assertEquals(UserProfileAnalysisTestWorker::$receivedData, [
+            'id' => $id,
+            'data' => $data,
+            'process' => Processor::ACK,
+            'beforeExecute' => $data,
+            'afterExecute' => $data,
+            'afterMessageAcknowledge' => Processor::ACK,
+            'processorFinished' => Processor::ACK,
+        ]);
+
+        UserProfileAnalysisTestWorker::$receivedData = null;
+
+        $data['id'] = 654321;
+        $data['expire'] = 1;
+
+        $id = $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
-            ->setData(['id' => 123456])
-            ->setExpiration(1)
+            ->setData($data)
+            ->setExpiration(2000)
             ->send();
 
-        usleep(2000);
+        usleep(50 * 1000);
+        
+        $this->queue->getConsumer()->consume(20);
 
-        $this->queue->getConsumer()->consume(1);
-        $this->assertEquals(UserProfileAnalysisWorker::$receivedData, null);
+        $this->assertEquals(UserProfileAnalysisTestWorker::$receivedData, null);
     }
 
     public function testQueueSendAndReceiveWorkerDelay()
     {
-        UserProfileAnalysisWorker::$receivedData = null;
+        UserProfileAnalysisTestWorker::$receivedData = null;
 
-        $this->queue->getClient()->worker()
+        $id = $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
             ->setData(['id' => 123456])
-            ->setDelay(100)
+            ->setDelay(120)
             ->send();
 
-        $this->queue->getConsumer()->consume(1);
-        $this->assertEquals(UserProfileAnalysisWorker::$receivedData, null);
-        $this->queue->getConsumer()->consume(120);
-        $this->assertEquals(UserProfileAnalysisWorker::$receivedData, ['id' => 123456]);
+        $this->queue->getConsumer()->consume(50);
+        $this->assertEquals(UserProfileAnalysisTestWorker::$receivedData, null);
+        
+        $this->queue->getConsumer()->consume(80);
+        $this->assertEquals(UserProfileAnalysisTestWorker::$receivedData, [
+            'id' => $id,
+            'data' => ['id' => 123456],
+            'process' => Processor::ACK,
+            'beforeExecute' => ['id' => 123456],
+            'afterExecute' => ['id' => 123456],
+            'afterMessageAcknowledge' => Processor::ACK,
+            'processorFinished' => Processor::ACK,
+        ]);
     }
 }

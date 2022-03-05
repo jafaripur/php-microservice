@@ -2,9 +2,15 @@
 
 namespace Araz\MicroService\Tests\Functional;
 
+use Araz\MicroService\Exceptions\CommandRejectException;
 use Araz\MicroService\Exceptions\CommandTimeoutException;
+use Araz\MicroService\Exceptions\SerializerNotFoundException;
 use Araz\MicroService\Processor;
 use Araz\MicroService\Queue;
+use Araz\MicroService\Serializers\PhpSerializer;
+use Araz\MicroService\Tests\Functional\Processor\WorkerCommand\UserProfileInfoCommandProcessorConsumerEventsWorker;
+use Araz\MicroService\Tests\Functional\Processor\WorkerCommand\UserProfileInfoCommandProcessorConsumerRedeliveryEventsWorker;
+use Araz\MicroService\Tests\Functional\Processor\WorkerCommand\UserProfileInfoCommandProcessorEventsWorker;
 use PHPUnit\Framework\TestCase;
 
 class CommandTest extends TestCase
@@ -25,11 +31,12 @@ class CommandTest extends TestCase
                 true,
                 true,
                 [
-                    \Araz\MicroService\Tests\Functional\Consumer\ConsumerCommand::class,
+                    \Araz\MicroService\Tests\Functional\Consumer\Command\ConsumerCommandWorkerResult::class,
                 ]
             );
 
             $this->queue->getConsumer()->consume(1);
+
         }
     }
 
@@ -39,7 +46,7 @@ class CommandTest extends TestCase
             $this->queue->getClient()->command()->send();
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
-            $this->assertStringContainsString('Queue name', $th->getMessage());
+            $this->assertStringContainsString('Queue name is required', $th->getMessage());
         }
 
         try {
@@ -48,7 +55,7 @@ class CommandTest extends TestCase
                 ->send();
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
-            $this->assertStringContainsString('Queue name', $th->getMessage());
+            $this->assertStringContainsString('Queue name is required', $th->getMessage());
         }
 
         try {
@@ -57,7 +64,7 @@ class CommandTest extends TestCase
                 ->send();
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
-            $this->assertStringContainsString('Job name', $th->getMessage());
+            $this->assertStringContainsString('Job name is required', $th->getMessage());
         }
 
         try {
@@ -82,13 +89,26 @@ class CommandTest extends TestCase
         try {
             $this->queue->getClient()->command()
                 ->setQueueName('service_command')
-                ->setJobName('profile_info')
+                ->setJobName('profile_info_fake')
                 ->setData(['id' => 123])
                 ->setTimeout(20)
                 ->send();
         } catch (\Throwable $th) {
             $this->assertInstanceOf(CommandTimeoutException::class, $th);
         }
+    }
+
+    public function testQueueSendAndReceiveCommand()
+    {
+        $result = $this->queue->getClient()->command()
+            ->setData(['id' => 123])
+            ->setQueueName('service_command')
+            ->setJobName('profile_info')
+            ->setTimeout(2000)
+            ->setPriority(0)
+            ->send();
+
+        $this->assertEquals($result, ['id' => 123]);
     }
 
     public function testQueueSendAndReceiveAsyncCommand()
@@ -99,14 +119,27 @@ class CommandTest extends TestCase
         ];
 
         $commands = $this->queue->getClient()->async(4000)
-            ->command('service_command', 'profile_info', $data['command-1'], 'command-1', 2000)
-            ->command('service_command', 'profile_info', $data['command-2'], 'command-2', 2000);
-
-        $this->queue->getConsumer()->consume(50);
+            ->command('service_command', 'profile_info', $data['command-1'], 'command-1', 2000, 0)
+            ->command('service_command', 'profile_info', $data['command-2'], 'command-2', 2000, 1);
 
         foreach ($commands->receive() as $correlationId => $dataReceived) {
             $this->assertEquals($dataReceived['result'], $data[$correlationId]);
             $this->assertEquals($dataReceived['ack'], Processor::ACK);
+        }
+    }
+
+    public function testQueueSendAndReceiveRejectCommand()
+    {
+        try {
+            $this->queue->getClient()->command()
+                ->setQueueName('service_command')
+                ->setJobName('profile_info_reject')
+                ->setData(['id' => 123])
+                ->setTimeout(2000)
+                ->setPriority(5)
+                ->send();
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(CommandRejectException::class, $th);
         }
     }
 
@@ -121,11 +154,96 @@ class CommandTest extends TestCase
             ->command('service_command', 'profile_info_reject', $data['command-1'], 'command-1', 2000)
             ->command('service_command', 'profile_info_reject', $data['command-2'], 'command-2', 2000);
 
-        $this->queue->getConsumer()->consume(50);
-
         foreach ($commands->receive() as $correlationId => $dataReceived) {
             $this->assertEquals($dataReceived['result'], null);
             $this->assertEquals($dataReceived['ack'], Processor::REJECT);
         }
+    }
+
+    public function testQueueSendCommandSerializeNotFound()
+    {
+
+        $this->queue->removeSerializer(PhpSerializer::class);
+
+        try {
+            $this->queue->getClient()->command()
+                ->setQueueName('service_command')
+                ->setJobName('profile_info_serializer')
+                ->setData(['id' => 123])
+                ->setTimeout(2000)
+                ->setPriority(5)
+                ->send();
+        } catch (\Throwable $th) {
+            $this->assertInstanceOf(SerializerNotFoundException::class, $th);
+        }
+
+        $this->queue->addSerializer(PhpSerializer::class);
+    }
+
+    public function testQueueSendAndReceiveEventsCommandProcessor()
+    {
+        $result = $this->queue->getClient()->command()
+            ->setQueueName('service_command')
+            ->setJobName('profile_info_command_events_processor')
+            ->setData(['id' => 123])
+            ->setTimeout(2000)
+            ->setPriority(5)
+            ->send();
+
+        $this->assertEquals($result, ['id' => 123]);
+
+        $this->queue->getConsumer()->consume(50);
+
+        $this->assertEquals(UserProfileInfoCommandProcessorEventsWorker::$receivedData, [
+            'afterMessageReplytoCommand' => Processor::ACK,
+            'process' => Processor::ACK,
+            'beforeExecute' => ['id' => 123],
+            'afterExecute' => ['id' => 123],
+            'afterMessageAcknowledge' => Processor::ACK,
+            'processorFinished' => Processor::ACK,
+        ]);
+    }
+
+    public function testQueueSendAndReceiveEventsCommandProcessorConsumer()
+    {
+        $result = $this->queue->getClient()->command()
+            ->setQueueName('service_command')
+            ->setJobName('profile_info_command_events_processor_consumer')
+            ->setData(['id' => 123])
+            ->setTimeout(2000)
+            ->setPriority(5)
+            ->send();
+
+        $this->assertEquals($result, ['id' => 123]);
+
+        $this->queue->getConsumer()->consume(50);
+
+        $this->assertEquals(UserProfileInfoCommandProcessorConsumerEventsWorker::$receivedData, [
+            'messageReceived' => true,
+            'afterMessageAcknowledge' => true,
+            'processorFinished' => Processor::ACK,
+        ]);
+    }
+
+    public function testQueueSendAndReceiveEventsCommandProcessorConsumerRedelivery()
+    {
+        $result = $this->queue->getClient()->command()
+            ->setQueueName('service_command')
+            ->setJobName('profile_info_command_events_processor_consumer_redelivery')
+            ->setData(['id' => 123])
+            ->setTimeout(2000)
+            ->setPriority(5)
+            ->send();
+
+        $this->assertEquals($result, ['id' => 123]);
+
+        $this->queue->getConsumer()->consume(50);
+
+        $this->assertEquals(UserProfileInfoCommandProcessorConsumerRedeliveryEventsWorker::$receivedData, [
+            'messageReceived' => true,
+            'afterMessageAcknowledge' => true,
+            'processorFinished' => Processor::REQUEUE,
+            'messageRedelivered' => true,
+        ]);
     }
 }
