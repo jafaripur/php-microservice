@@ -154,7 +154,7 @@ abstract class Processor
      * @param  string $status ack, reject, requeue, null on redelivery
      * @return void
      */
-    public function processorFinished(?string $result): void
+    public function processorFinished(?string $status): void
     {
     }
 

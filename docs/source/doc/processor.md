@@ -27,6 +27,7 @@ Each processor can override this method and is optional:
 - `process(AmqpMessage $message, AmqpConsumer $consumer)`: Run after the `afterExecute()` method to decision current message received should be accept or reject or requeue. return value can be : `ack`, `reject`, `requeue`.
 - `afterMessageAcknowledge(string $status)`: Run after message acknowledge. status can be : `ack`, `reject`, `requeue`.
 - `resetAfterProcess()`: Return boolean value. If returned value is true, each time message received and execute the processor, processor object should recreate.
+- `processorFinished(?string $status)`: Will run before complete the processor. status can be : `ack`, `reject`, `requeue` and `null`. In redelivered status set to `null`.
 - `getQueueTtl()`: Return time as millisecond for time to live of created queue for current processor.
 
 ### Command

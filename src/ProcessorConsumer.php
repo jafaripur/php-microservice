@@ -107,9 +107,10 @@ abstract class ProcessorConsumer
      * Trigger when processor finished
      *
      * @param  string $status ack, reject, requeue, null on redelivery
+     * @param  Processor $processor Handled processor
      * @return void
      */
-    public function processorFinished(?string $result): void
+    public function processorFinished(?string $status, Processor $processor): void
     {
     }
 
