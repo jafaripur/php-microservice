@@ -122,7 +122,7 @@ final class Consumer
     {
         if ($processor) {
             $processor->processorFinished($ackResult);
-            $processor->getProcessorConsumer()->processorFinished($ackResult);
+            $processor->getProcessorConsumer()->processorFinished($ackResult, $processor);
 
             if ($processor->resetAfterProcess()) {
                 $this->addProcessor($method, $this->createProcessorObject($processor->getProcessorConsumer(), $processor::class));

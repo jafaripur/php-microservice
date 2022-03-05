@@ -38,9 +38,9 @@ final class ConsumerCommandEventConsumer extends ProcessorConsumer
         $this->events['afterMessageAcknowledge'] = true;
     }
 
-    public function processorFinished(?string $result): void
+    public function processorFinished(?string $status, Processor $processor): void
     {
-        $this->events['processorFinished'] = $result;
+        $this->events['processorFinished'] = $status;
 
         $this->getQueue()->getClient()->worker()
             ->setQueueName('service_worker_result')
