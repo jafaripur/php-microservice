@@ -118,10 +118,17 @@ final class Consumer
         $this->processorConsumersLoaded = [];
     }
 
-    private function returnReceiveCallbackResult(bool $result, string $method, ?Processor $processor = null): bool
+    private function returnReceiveCallbackResult(bool $result, ?string $ackResult, string $method, ?Processor $processor = null): bool
     {
-        if ($processor && $processor->resetAfterProcess()) {
-            $this->addProcessor($method, $this->createProcessorObject($processor->getProcessorConsumer(), $processor::class));
+        
+        if ($processor) {
+
+            $processor->processorFinished($ackResult);
+            $processor->getProcessorConsumer()->processorFinished($ackResult);
+
+            if ($processor->resetAfterProcess()) {
+                $this->addProcessor($method, $this->createProcessorObject($processor->getProcessorConsumer(), $processor::class));
+            }
         }
 
         gc_collect_cycles();
@@ -147,12 +154,12 @@ final class Consumer
         if (!in_array($method, (array)$this->queue::METHODS, true)) {
             $consumer->reject($message, false);
             $this->queue->getLogger()->critical('Unknow method received in consuming', $message->getProperties() + $message->getHeaders());
-            return $this->returnReceiveCallbackResult(true, $method);
+            return $this->returnReceiveCallbackResult(true, Processor::REJECT, $method);
         }
 
         if ($this->checkRedelivered($method, $processorConsumer, $message, $consumer)) {
             $processorConsumer->messageRedelivered($message, $consumer);
-            return $this->returnReceiveCallbackResult(true, $method);
+            return $this->returnReceiveCallbackResult(true, null, $method);
         }
 
         $processorConsumer->messageReceived($message, $consumer);
@@ -167,13 +174,13 @@ final class Consumer
         if (!$serializer) {
             $consumer->reject($message, true);
             $this->queue->getLogger()->critical('Serialize not found in terminal consuming.', $message->getProperties() + $message->getHeaders());
-            return $this->returnReceiveCallbackResult(true, $method);
+            return $this->returnReceiveCallbackResult(true, Processor::REQUEUE, $method);
         }
 
         if ($method == $this->queue::METHOD_JOB_COMMAND && (!$message->getCorrelationId() || !$message->getReplyTo())) {
             $consumer->reject($message, false);
             $this->queue->getLogger()->critical('Wrong command method coming without correlation_id and reply_to', $message->getProperties() + $message->getHeaders());
-            return $this->returnReceiveCallbackResult(true, $method);
+            return $this->returnReceiveCallbackResult(true, Processor::REJECT, $method);
         }
 
         if (!$processor = $this->getReceivedMessageProcessor($method, $message)) {
@@ -181,7 +188,7 @@ final class Consumer
             $this->queue->getLogger()->error('Processor not found!', [
                 $message->getProperties() + $message->getHeaders(),
             ]);
-            return $this->returnReceiveCallbackResult(true, $method, $processor);
+            return $this->returnReceiveCallbackResult(true, Processor::REQUEUE, $method, $processor);
         }
 
         /**
@@ -199,7 +206,7 @@ final class Consumer
                 $processor->afterMessageReplytoCommand($message->getMessageId(), $this->replyBackMessage($message, null, Processor::REJECT), $message->getCorrelationId(), Processor::REJECT);
             }
 
-            return $this->returnReceiveCallbackResult(true, $method, $processor);
+            return $this->returnReceiveCallbackResult(true, Processor::REJECT, $method, $processor);
         }
 
         $executeResult = null;
@@ -242,7 +249,7 @@ final class Consumer
             $processor->afterMessageReplytoCommand($message->getMessageId(), $this->replyBackMessage($message, $executeResult, $ackResult), $message->getCorrelationId(), $ackResult);
         }
 
-        return $this->returnReceiveCallbackResult(true, $method, $processor);
+        return $this->returnReceiveCallbackResult(true, $ackResult, $method, $processor);
     }
 
     /**
@@ -419,21 +426,16 @@ final class Consumer
      */
     private function createProcessorsOfConsumer(ProcessorConsumer $processorConsume): void
     {
+
         /**
          * @var string $class
          */
         foreach ($processorConsume->getProcessors() as $class) {
-            if (is_subclass_of($class, Command::class)) {
-                $method = $this->queue::METHOD_JOB_COMMAND;
-            } elseif (is_subclass_of($class, Worker::class)) {
-                $method = $this->queue::METHOD_JOB_WORKER;
-            } elseif (is_subclass_of($class, Topic::class)) {
-                $method = $this->queue::METHOD_JOB_TOPIC;
-            } elseif (is_subclass_of($class, Emit::class)) {
-                $method = $this->queue::METHOD_JOB_EMIT;
-            } else {
+            if (!is_subclass_of($class, Processor::class)) {
                 throw new \LogicException(sprintf('Processor not support: %s', $class));
             }
+
+            $method = $class::getType();
 
             if (!$this->getProcessor($method, $class)) {
                 $this->addProcessor($method, $this->createProcessorObject($processorConsume, $class));

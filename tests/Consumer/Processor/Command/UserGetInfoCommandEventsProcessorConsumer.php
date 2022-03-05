@@ -2,19 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Araz\MicroService\Tests\Functional\Processor\Command;
+namespace Araz\MicroService\Tests\Consumer\Processor\Command;
 
 use Araz\MicroService\Processors\Command;
-use Interop\Amqp\AmqpConsumer;
-use Interop\Amqp\AmqpMessage;
 
-final class UserGetInfoCommandReject extends Command
+final class UserGetInfoCommandEventsProcessorConsumer extends Command
 {
-    public function process(AmqpMessage $message, AmqpConsumer $consumer): string
-    {
-        return self::REJECT;
-    }
-
+    
     public function execute(mixed $body): mixed
     {
         return $body;
@@ -27,7 +21,12 @@ final class UserGetInfoCommandReject extends Command
 
     public function getJobName(): string
     {
-        return 'profile_info_reject';
+        return 'profile_info_command_events_processor_consumer';
+    }
+
+    public function resetAfterProcess(): bool
+    {
+        return true;
     }
 
     public function durableQueue(): bool

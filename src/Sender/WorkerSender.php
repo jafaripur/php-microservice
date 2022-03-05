@@ -139,7 +139,10 @@ final class WorkerSender extends SenderBase
         }
 
         $queue = $this->queue->createQueue($this->queueName);
-        $queue->addFlag(AmqpQueue::FLAG_PASSIVE);
+
+        if ($this->getPassive()) {
+            $queue->addFlag(AmqpQueue::FLAG_PASSIVE);
+        }
         $this->queue->declareQueue($queue);
 
         $message = $this->queue->createMessage($this->data);
@@ -148,9 +151,9 @@ final class WorkerSender extends SenderBase
         MessageProperty::setMethod($message, $this->queue::METHOD_JOB_WORKER);
 
         $this->queue->createProducer()
-            ->setPriority($this->priority)
-            ->setTimeToLive($this->expiration)
-            ->setDeliveryDelay($this->delay)
+            ->setPriority($this->priority ?: null)
+            ->setTimeToLive($this->expiration ?: null)
+            ->setDeliveryDelay($this->delay ?: null)
             ->send($queue, $message);
 
         return $message->getMessageId();

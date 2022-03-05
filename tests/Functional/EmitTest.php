@@ -2,8 +2,10 @@
 
 namespace Araz\MicroService\Tests\Functional;
 
+use Araz\MicroService\Processor;
 use Araz\MicroService\Queue;
-use Araz\MicroService\Tests\Functional\Processor\Emit\UserLoggedInEmit;
+use Araz\MicroService\Tests\Functional\Processor\WorkerEmit\UserLoggedInEmitWorker;
+use Araz\MicroService\Tests\Mock\Processor\Emit\UserLoggedInEmit;
 use PHPUnit\Framework\TestCase;
 
 class EmitTest extends TestCase
@@ -24,7 +26,7 @@ class EmitTest extends TestCase
                 true,
                 true,
                 [
-                    \Araz\MicroService\Tests\Functional\Consumer\ConsumerEmit::class,
+                    \Araz\MicroService\Tests\Functional\Consumer\Emit\ConsumerEmitWorkerResult::class,
                 ]
             );
 
@@ -38,7 +40,7 @@ class EmitTest extends TestCase
             $this->queue->getClient()->emit()->send();
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
-            $this->assertStringContainsString('Topic name', $th->getMessage());
+            $this->assertStringContainsString('Topic name is required', $th->getMessage());
         }
 
         try {
@@ -53,31 +55,48 @@ class EmitTest extends TestCase
     {
         $data = ['id' => 123];
 
-        $this->queue->getClient()->emit()
+        $id = $this->queue->getClient()->emit()
             ->setTopicName('user_logged_in')
             ->setData($data)
             ->send();
 
-        $this->queue->getConsumer()->consume(1);
+        $this->queue->getConsumer()->consume(50);
 
-        $this->assertEquals(UserLoggedInEmit::$receivedData, $data);
+        $this->assertEquals(UserLoggedInEmitWorker::$receivedData, [
+            'id' => $id,
+            'data' => $data,
+            'process' => Processor::ACK,
+            'beforeExecute' => $data,
+            'afterExecute' => $data,
+            'afterMessageAcknowledge' => Processor::ACK,
+            'processorFinished' => Processor::ACK,
+        ]);
     }
 
     public function testQueueSendAndReceiveTopicDelay()
     {
         $data = ['id' => 123];
 
-        UserLoggedInEmit::$receivedData = null;
+        UserLoggedInEmitWorker::$receivedData = null;
 
-        $this->queue->getClient()->emit()
+        $id = $this->queue->getClient()->emit()
             ->setTopicName('user_logged_in')
             ->setData($data)
             ->setDelay(100)
             ->send();
 
-        $this->queue->getConsumer()->consume(1);
-        $this->assertEquals(UserLoggedInEmit::$receivedData, null);
-        $this->queue->getConsumer()->consume(120);
-        $this->assertEquals(UserLoggedInEmit::$receivedData, $data);
+        $this->queue->getConsumer()->consume(50);
+        $this->assertEquals(UserLoggedInEmitWorker::$receivedData, null);
+
+        $this->queue->getConsumer()->consume(80);
+        $this->assertEquals(UserLoggedInEmitWorker::$receivedData, [
+            'id' => $id,
+            'data' => $data,
+            'process' => Processor::ACK,
+            'beforeExecute' => $data,
+            'afterExecute' => $data,
+            'afterMessageAcknowledge' => Processor::ACK,
+            'processorFinished' => Processor::ACK,
+        ]);
     }
 }

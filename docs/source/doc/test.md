@@ -14,7 +14,7 @@ Run test:
 
 ```{code-block} bash
 
-docker-compose up --build micro
+docker-compose up --build --exit-code-from micro micro
 
 ```
 

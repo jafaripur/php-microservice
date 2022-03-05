@@ -11,15 +11,24 @@
       tty: true
       healthcheck:
          test: "exit 0"
-
-   micro:
+   
+   micro_consumer:
       build:
          context: ./
          dockerfile: ./docker/Dockerfile
          network: host
       image: php-microservice-test:latest
+      entrypoint: ["/app/vendor/bin/phpunit", "--testsuite", "Consumer"]
       init: true
       tty: true
       depends_on:
          php-microservice-rabbitmq-test:
             condition: service_healthy
+
+   micro:
+      image: php-microservice-test:latest
+      entrypoint: ["/app/vendor/bin/phpunit", "--testsuite", "Unit,Functional"]
+      init: true
+      tty: true
+      depends_on:
+         - micro_consumer

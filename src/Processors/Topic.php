@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Araz\MicroService\Processors;
 
 use Araz\MicroService\Processor;
+use Araz\MicroService\Queue;
 
 /**
  * @inheritDoc
@@ -33,6 +34,14 @@ abstract class Topic extends Processor
      * @return string
      */
     abstract public function getTopicName(): string;
+
+    /**
+     * @inheritDoc
+     */
+    final public static function getType(): string
+    {
+        return Queue::METHOD_JOB_TOPIC;
+    }
 
     /**
      * @inheritDoc

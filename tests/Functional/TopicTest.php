@@ -2,8 +2,10 @@
 
 namespace Araz\MicroService\Tests\Functional;
 
+use Araz\MicroService\Processor;
 use Araz\MicroService\Queue;
-use Araz\MicroService\Tests\Functional\Processor\Topic\UserCreatedTopic;
+use Araz\MicroService\Tests\Functional\Processor\WorkerTopic\UserLoggedInTopicWorker;
+use Araz\MicroService\Tests\Mock\Processor\Topic\UserCreatedTopic;
 use PHPUnit\Framework\TestCase;
 
 class TopicTest extends TestCase
@@ -24,7 +26,7 @@ class TopicTest extends TestCase
                 true,
                 true,
                 [
-                    \Araz\MicroService\Tests\Functional\Consumer\ConsumerTopic::class,
+                    \Araz\MicroService\Tests\Functional\Consumer\Topic\ConsumerTopicWorkerResult::class,
                 ]
             );
 
@@ -71,56 +73,96 @@ class TopicTest extends TestCase
     {
         $data = ['id' => 123];
 
-        $this->queue->getClient()->topic()
+        $id = $this->queue->getClient()->topic()
             ->setTopicName('user_changed')
             ->setRoutingKey('user_topic_create')
             ->setData($data)
             ->send();
 
-        $this->queue->getConsumer()->consume(1);
-        $this->assertEquals(UserCreatedTopic::$receivedData, $data);
+        $this->queue->getConsumer()->consume(50);
+        
+        $this->assertEquals(UserLoggedInTopicWorker::$receivedData, [
+            'id' => $id,
+            'routingKey' => 'user_topic_create',
+            'data' => $data,
+            'process' => Processor::ACK,
+            'beforeExecute' => $data,
+            'afterExecute' => $data,
+            'afterMessageAcknowledge' => Processor::ACK,
+            'processorFinished' => Processor::ACK,
+        ]);
 
         $data = ['id' => 1234];
 
-        $this->queue->getClient()->topic()
+        $id = $this->queue->getClient()->topic()
             ->setTopicName('user_changed')
             ->setRoutingKey('user_topic_update')
             ->setData($data)
             ->send();
 
-        $this->queue->getConsumer()->consume(1);
-        $this->assertEquals(UserCreatedTopic::$receivedData, $data);
+        $this->queue->getConsumer()->consume(50);
+
+        $this->assertEquals(UserLoggedInTopicWorker::$receivedData, [
+            'id' => $id,
+            'routingKey' => 'user_topic_update',
+            'data' => $data,
+            'process' => Processor::ACK,
+            'beforeExecute' => $data,
+            'afterExecute' => $data,
+            'afterMessageAcknowledge' => Processor::ACK,
+            'processorFinished' => Processor::ACK,
+        ]);
+
     }
 
     public function testQueueSendAndReceiveTopicDelay()
     {
         $data = ['id' => 123];
 
-        UserCreatedTopic::$receivedData = null;
+        UserLoggedInTopicWorker::$receivedData = null;
 
-        $this->queue->getClient()->topic()
+        $id = $this->queue->getClient()->topic()
             ->setTopicName('user_changed')
             ->setRoutingKey('user_topic_create')
             ->setData($data)
-            ->setDelay(100)
+            ->setDelay(120)
             ->send();
 
-        $this->queue->getConsumer()->consume(1);
-        $this->assertEquals(UserCreatedTopic::$receivedData, null);
-        $this->queue->getConsumer()->consume(120);
-        $this->assertEquals(UserCreatedTopic::$receivedData, $data);
+        $this->queue->getConsumer()->consume(50);
+        $this->assertEquals(UserLoggedInTopicWorker::$receivedData, null);
 
-        UserCreatedTopic::$receivedData = null;
-        $this->queue->getClient()->topic()
+        $this->queue->getConsumer()->consume(80);
+        $this->assertEquals(UserLoggedInTopicWorker::$receivedData, [
+            'id' => $id,
+            'routingKey' => 'user_topic_create',
+            'data' => $data,
+            'process' => Processor::ACK,
+            'beforeExecute' => $data,
+            'afterExecute' => $data,
+            'afterMessageAcknowledge' => Processor::ACK,
+            'processorFinished' => Processor::ACK,
+        ]);
+
+        UserLoggedInTopicWorker::$receivedData = null;
+        $id = $this->queue->getClient()->topic()
             ->setTopicName('user_changed')
             ->setRoutingKey('user_topic_update')
             ->setData($data)
-            ->setDelay(100)
+            ->setDelay(120)
             ->send();
 
-        $this->queue->getConsumer()->consume(1);
-        $this->assertEquals(UserCreatedTopic::$receivedData, null);
-        $this->queue->getConsumer()->consume(120);
-        $this->assertEquals(UserCreatedTopic::$receivedData, $data);
+        $this->queue->getConsumer()->consume(50);
+        $this->assertEquals(UserLoggedInTopicWorker::$receivedData, null);
+        $this->queue->getConsumer()->consume(80);
+        $this->assertEquals(UserLoggedInTopicWorker::$receivedData, [
+            'id' => $id,
+            'routingKey' => 'user_topic_update',
+            'data' => $data,
+            'process' => Processor::ACK,
+            'beforeExecute' => $data,
+            'afterExecute' => $data,
+            'afterMessageAcknowledge' => Processor::ACK,
+            'processorFinished' => Processor::ACK,
+        ]);
     }
 }

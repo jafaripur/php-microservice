@@ -71,7 +71,11 @@ final class EmitSender extends SenderBase
 
         $topic = $this->queue->createTopic($this->topicName);
         $topic->setType(AmqpTopic::TYPE_FANOUT);
-        $topic->addFlag(AmqpTopic::FLAG_PASSIVE);
+
+        if ($this->getPassive()) {
+            $topic->addFlag(AmqpTopic::FLAG_PASSIVE);
+        }
+        
         $this->queue->declareTopic($topic);
 
         $queue = $this->queue->createTemporaryQueue();
@@ -83,7 +87,7 @@ final class EmitSender extends SenderBase
         MessageProperty::setMethod($message, $this->queue::METHOD_JOB_EMIT);
 
         $this->queue->createProducer()
-            ->setDeliveryDelay($this->delay)
+            ->setDeliveryDelay($this->delay ?: null)
             ->send($topic, $message);
 
         return $message->getMessageId();

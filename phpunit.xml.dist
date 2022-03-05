@@ -6,11 +6,14 @@
     </include>
   </coverage>
   <testsuites>
-    <testsuite name="Unit test for queue">
+    <testsuite name="Unit">
       <directory suffix="Test.php">tests/Unit</directory>
     </testsuite>
-    <testsuite name="Functional test for queue">
+    <testsuite name="Functional">
       <directory suffix="Test.php">tests/Functional</directory>
+    </testsuite>
+    <testsuite name="Consumer">
+      <directory suffix="Test.php">tests/Consumer</directory>
     </testsuite>
   </testsuites>
   <php>

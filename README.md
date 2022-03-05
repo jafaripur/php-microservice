@@ -36,7 +36,7 @@ For more details, see full document [http://php-microservice.readthedocs.io/](ht
 ```sh
 
 # Run test
-docker-compose up --build micro
+docker-compose up --build --exit-code-from micro micro
 
 # Stop and remove created containers
 docker-compose down

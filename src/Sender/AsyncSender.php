@@ -93,8 +93,12 @@ final class AsyncSender
             throw new \LogicException(sprintf('Priority accept between 0 and %s', (int)$this->queue::MAX_PRIORITY));
         }
 
-        if (strlen($correlationId) > 100) {
-            throw new \LogicException('CorrelationId should be less than 100 character');
+        if (strlen(trim($correlationId)) > 100) {
+            throw new \LogicException('CorrelationId should be less than 100 character.');
+        }
+
+        if (empty(trim($correlationId))) {
+            throw new \LogicException('CorrelationId required for async command sending.');
         }
 
         $queue = $this->queue->createQueue($queueName, false);
@@ -107,7 +111,7 @@ final class AsyncSender
         $message->setReplyTo($this->queueResponse->getQueueName());
 
         $this->queue->getContext()->createProducer()
-            ->setPriority($priority)
+            ->setPriority($priority ?: null)
             ->setTimeToLive($timeout + self::COMMAND_MESSAGE_EXPIRE_AFTER_SEND)
             ->send($queue, $message);
 
@@ -211,7 +215,7 @@ final class AsyncSender
                 break;
             }
 
-            usleep(30000); //30ms
+            usleep(20000); //20ms
         }
 
         return $count;
