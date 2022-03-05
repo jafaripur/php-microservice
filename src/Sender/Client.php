@@ -40,9 +40,9 @@ final class Client
      *
      * @return CommandSender
      */
-    public function command(): CommandSender
+    public function command(bool $passive = true): CommandSender
     {
-        return new CommandSender($this->queue);
+        return new CommandSender($this->queue, $passive);
     }
 
     /**
@@ -50,9 +50,9 @@ final class Client
      *
      * @return EmitSender
      */
-    public function emit(): EmitSender
+    public function emit(bool $passive = true): EmitSender
     {
-        return new EmitSender($this->queue);
+        return new EmitSender($this->queue, $passive);
     }
 
     /**
@@ -60,9 +60,9 @@ final class Client
      *
      * @return TopicSender
      */
-    public function topic(): TopicSender
+    public function topic(bool $passive = true): TopicSender
     {
-        return new TopicSender($this->queue);
+        return new TopicSender($this->queue, $passive);
     }
 
     /**
@@ -70,8 +70,8 @@ final class Client
      *
      * @return WorkerSender
      */
-    public function worker(): WorkerSender
+    public function worker(bool $passive = true): WorkerSender
     {
-        return new WorkerSender($this->queue);
+        return new WorkerSender($this->queue, $passive);
     }
 }

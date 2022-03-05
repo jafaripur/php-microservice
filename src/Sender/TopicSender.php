@@ -91,7 +91,11 @@ final class TopicSender extends SenderBase
 
         $topic = $this->queue->createTopic($this->topicName);
         $topic->setType(AmqpTopic::TYPE_DIRECT);
-        $topic->addFlag(AmqpTopic::FLAG_PASSIVE);
+
+        if ($this->getPassive()) {
+            $topic->addFlag(AmqpTopic::FLAG_PASSIVE);
+        }
+        
         $this->queue->declareTopic($topic);
 
         $queue = $this->queue->createTemporaryQueue();
@@ -104,7 +108,7 @@ final class TopicSender extends SenderBase
         $message->setRoutingKey($this->routingKey);
 
         $this->queue->createProducer()
-            ->setDeliveryDelay($this->delay)
+            ->setDeliveryDelay($this->delay ?: null)
             ->send($topic, $message);
 
         return $message->getMessageId();

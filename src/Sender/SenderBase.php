@@ -14,14 +14,21 @@ abstract class SenderBase
       */
     protected Queue $queue;
 
+    private bool $passive;
+
     /**
      *
      * @param  Queue  $queue
      */
-    public function __construct(Queue $queue)
+    public function __construct(Queue $queue, bool $passive)
     {
         $this->queue = $queue;
+        $this->passive = $passive;
     }
 
     abstract public function send(): mixed;
+
+    public function getPassive(): bool {
+      return $this->passive;
+    }
 }

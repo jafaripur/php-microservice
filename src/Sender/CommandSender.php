@@ -127,7 +127,11 @@ final class CommandSender extends SenderBase
         $consumer = $this->queue->createConsumer($queueResponse);
 
         $queue = $this->queue->createQueue($this->queueName, false);
-        $queue->addFlag(AmqpQueue::FLAG_PASSIVE);
+
+        if ($this->getPassive()) {
+            $queue->addFlag(AmqpQueue::FLAG_PASSIVE);
+        }
+        
         $this->queue->declareQueue($queue);
 
         $message = $this->queue->createMessage($this->data, false);
@@ -138,7 +142,7 @@ final class CommandSender extends SenderBase
         $message->setReplyTo($queueResponse->getQueueName());
 
         $this->queue->getContext()->createProducer()
-            ->setPriority($this->priority)
+            ->setPriority($this->priority ?: null)
             ->setTimeToLive($this->timeout + self::COMMAND_MESSAGE_EXPIRE_AFTER_SEND)
             ->send($queue, $message);
 
