@@ -36,7 +36,6 @@ class CommandTest extends TestCase
             );
 
             $this->queue->getConsumer()->consume(1);
-
         }
     }
 
@@ -162,7 +161,6 @@ class CommandTest extends TestCase
 
     public function testQueueSendCommandSerializeNotFound()
     {
-
         $this->queue->removeSerializer(PhpSerializer::class);
 
         try {

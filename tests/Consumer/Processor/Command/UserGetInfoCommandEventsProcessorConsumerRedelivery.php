@@ -11,7 +11,6 @@ use Interop\Amqp\Impl\AmqpMessage;
 
 final class UserGetInfoCommandEventsProcessorConsumerRedelivery extends Command
 {
-    
     public function execute(mixed $body): mixed
     {
         return $body;

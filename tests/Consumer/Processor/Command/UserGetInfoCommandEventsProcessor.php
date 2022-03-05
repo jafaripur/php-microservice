@@ -11,7 +11,6 @@ use Interop\Amqp\Impl\AmqpMessage;
 
 final class UserGetInfoCommandEventsProcessor extends Command
 {
-
     private $events = [
         'afterMessageReplytoCommand' => '',
         'process' => '',
@@ -20,7 +19,7 @@ final class UserGetInfoCommandEventsProcessor extends Command
         'afterMessageAcknowledge' => '',
         'processorFinished' => '',
     ];
-    
+
     public function execute(mixed $body): mixed
     {
         return $body;

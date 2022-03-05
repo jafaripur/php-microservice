@@ -12,11 +12,10 @@ use Interop\Amqp\Impl\AmqpMessage;
 
 final class ConsumerCommandEventConsumer extends ProcessorConsumer
 {
-
     private $events = [
         'messageReceived' => '',
         'afterMessageAcknowledge' => '',
-        'processorFinished' => ''
+        'processorFinished' => '',
     ];
 
     public function getConsumerIdentify(): string
@@ -47,6 +46,6 @@ final class ConsumerCommandEventConsumer extends ProcessorConsumer
             ->setQueueName('service_worker_result')
             ->setJobName('user_profile_info_event_processor_consumer')
             ->setData($this->events)
-            ->send();   
+            ->send();
     }
 }

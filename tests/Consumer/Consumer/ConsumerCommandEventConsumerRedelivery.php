@@ -12,7 +12,6 @@ use Interop\Amqp\Impl\AmqpMessage;
 
 final class ConsumerCommandEventConsumerRedelivery extends ProcessorConsumer
 {
-
     private $events = [
         'messageReceived' => '',
         'afterMessageAcknowledge' => '',
@@ -53,6 +52,6 @@ final class ConsumerCommandEventConsumerRedelivery extends ProcessorConsumer
             ->setQueueName('service_worker_result')
             ->setJobName('user_profile_info_event_processor_consumer_redelivery')
             ->setData($this->events)
-            ->send();   
+            ->send();
     }
 }

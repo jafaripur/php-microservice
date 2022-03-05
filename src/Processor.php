@@ -152,11 +152,10 @@ abstract class Processor
      * Trigger when processor finished
      *
      * @param  string $status ack, reject, requeue, null on redelivery
-     * @return void 
+     * @return void
      */
     public function processorFinished(?string $result): void
     {
-        
     }
 
     /**

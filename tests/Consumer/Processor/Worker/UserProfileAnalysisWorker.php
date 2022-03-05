@@ -66,7 +66,6 @@ final class UserProfileAnalysisWorker extends Worker
 
     public function processorFinished(?string $result): void
     {
-
         $this->events['processorFinished'] = $result;
 
         $this->getQueue()->getClient()->worker()
