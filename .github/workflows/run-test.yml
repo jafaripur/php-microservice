@@ -37,4 +37,4 @@ jobs:
     - name: Build the Docker images
       run: docker-compose build -q
     - name: Run test
-      run: docker-compose up micro
+      run: docker-compose up --exit-code-from micro micro
