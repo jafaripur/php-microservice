@@ -26,6 +26,18 @@ abstract class ProcessorConsumer
     private Queue $queue;
 
     /**
+     * Get list of processors classes
+     */
+    abstract public function getProcessors(): Generator;
+
+    /**
+     * Get consumer identify name, should be unique in available ProcessorConsumers.
+     *
+     * @return string
+     */
+    abstract public function getConsumerIdentify(): string;
+
+    /**
      * Set current running queue object
      *
      * @return void
@@ -44,18 +56,6 @@ abstract class ProcessorConsumer
     {
         return $this->queue;
     }
-
-    /**
-     * Get list of processors classes
-     */
-    abstract public function getProcessors(): Generator;
-
-    /**
-     * Get consumer identify name, should be unique in available ProcessorConsumers.
-     *
-     * @return string
-     */
-    abstract public function getConsumerIdentify(): string;
 
     /**
      * Run when consumer get receive new message
@@ -101,6 +101,17 @@ abstract class ProcessorConsumer
      */
     public function messageRedeliveredMaximumReached(AmqpMessage $message, AmqpConsumer $consumer): void
     {
+    }
+
+    /**
+     * Trigger when processor finished
+     *
+     * @param  string $status ack, reject, requeue, null on redelivery
+     * @return void 
+     */
+    public function processorFinished(?string $result): void
+    {
+        
     }
 
     /**

@@ -23,6 +23,27 @@ abstract class Processor
     private Queue $queue;
     private ProcessorConsumer $processorConsumer;
 
+    /**
+     * Get type of processor
+     *
+     * @return string
+     */
+    abstract public static function getType(): string;
+
+    /**
+     * Get name of the queue for consuming
+     *
+     * @return string
+     */
+    abstract public function getQueueName(): string;
+
+    /**
+     * Validate processor parameters
+     *
+     * @return void
+     */
+    abstract protected function validateProcessor(): void;
+
     public function init(): void
     {
         $this->validateProcessor();
@@ -67,20 +88,6 @@ abstract class Processor
     {
         $this->processorConsumer = $processorConsumer;
     }
-
-    /**
-     * Get name of the queue for consuming
-     *
-     * @return string
-     */
-    abstract public function getQueueName(): string;
-
-    /**
-     * Validate processor parameters
-     *
-     * @return void
-     */
-    abstract protected function validateProcessor(): void;
 
     /**
      * Run after the afterExecute method with returning this value:
@@ -139,6 +146,17 @@ abstract class Processor
     public function resetAfterProcess(): bool
     {
         return false;
+    }
+
+    /**
+     * Trigger when processor finished
+     *
+     * @param  string $status ack, reject, requeue, null on redelivery
+     * @return void 
+     */
+    public function processorFinished(?string $result): void
+    {
+        
     }
 
     /**
