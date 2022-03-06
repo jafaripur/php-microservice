@@ -2,6 +2,7 @@
 
 namespace Araz\MicroService\Tests\Unit;
 
+use Araz\MicroService\AmqpConnection;
 use Araz\MicroService\Sender\AsyncSender;
 use Araz\MicroService\Sender\CommandSender;
 use Araz\MicroService\Sender\EmitSender;
@@ -30,10 +31,10 @@ class QueueTest extends TestCase
         yield 'queue' => [
             new Queue(
                 'test-app',
-                [
+                new AmqpConnection([
                     'dsn' => $_ENV['AMQP_DSN'],
                     'persisted' => false,
-                ],
+                ]),
                 null,
                 null,
                 true,
@@ -56,6 +57,7 @@ class QueueTest extends TestCase
         $this->assertEquals('test-app', $queue->getAppName());
         $this->assertNotEquals('test-app-dup', $queue->getAppName());
 
+        $this->assertInstanceOf(AmqpConnection::class, $queue->getConnection());
         $this->assertInstanceOf(AmqpContext::class, $queue->getContext());
         $this->assertInstanceOf(AmqpProducer::class, $queue->createProducer());
 

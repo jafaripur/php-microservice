@@ -2,6 +2,7 @@
 
 namespace Araz\MicroService\Tests\Functional;
 
+use Araz\MicroService\AmqpConnection;
 use Araz\MicroService\Processor;
 use Araz\MicroService\Queue;
 use Araz\MicroService\Tests\Functional\Processor\WorkerTopic\UserLoggedInTopicWorker;
@@ -17,10 +18,10 @@ class TopicTest extends TestCase
         if (!$this->queue) {
             $this->queue = new Queue(
                 'test-app',
-                [
+                new AmqpConnection([
                     'dsn' => $_ENV['AMQP_DSN'],
                     'persisted' => false,
-                ],
+                ]),
                 null,
                 null,
                 true,

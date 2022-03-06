@@ -2,6 +2,7 @@
 
 namespace Araz\MicroService\Tests\Consumer;
 
+use Araz\MicroService\AmqpConnection;
 use Araz\MicroService\Queue;
 use Araz\MicroService\Serializers\MessagePackSerializer;
 use PHPUnit\Framework\TestCase;
@@ -13,10 +14,10 @@ class ConsumerTest extends TestCase
         yield 'queue' => [
             new Queue(
                 'test-app',
-                [
+                new AmqpConnection([
                     'dsn' => $_ENV['AMQP_DSN'],
                     'persisted' => false,
-                ],
+                ]),
                 null,
                 null,
                 true,

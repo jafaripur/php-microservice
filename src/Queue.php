@@ -14,8 +14,6 @@ use Araz\MicroService\Serializers\PhpSerializer;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Araz\MicroService\Tools\RabbitMqDlxDelayStrategy;
-use Enqueue\AmqpExt\AmqpConnectionFactory;
-use Enqueue\AmqpBunny\AmqpConnectionFactory as AmqpBunnyConnectionFactory;
 use Enqueue\AmqpTools\DelayStrategy;
 use Interop\Amqp\AmqpContext;
 use Interop\Amqp\AmqpConsumer;
@@ -34,12 +32,6 @@ class Queue implements QueueInterface
      * @var LoggerInterface $logger
      */
     private $logger;
-
-    /**
-     *
-     * @var AmqpContext|\Enqueue\AmqpBunny\AmqpContext $context
-     */
-    private $context;
 
     /**
      * Server to listen to grab messages
@@ -66,21 +58,16 @@ class Queue implements QueueInterface
 
     private bool $lazyQueue = true;
 
+    private AmqpConnection $connection;
+
     /**
      *
      *
      * Processor namespace loading recursively from start to end
      *
-     * check for more: https://php-enqueue.github.io/transport
-     * $transport => [
-     *    'dsn' => 'amqps://guest:guest@localhost:5672/%2f',
-     *    'ssl_cacert' => '/a/dir/cacert.pem',
-     *    'ssl_cert' => '/a/dir/cert.pem',
-     *    'ssl_key' => '/a/dir/key.pem',
-     * ]
      *
-     *
-     * @param  array $transport
+     * @param  string $appName
+     * @param  AmqpConnection $connection
      * @param  LoggerInterface|null $logger
      * @param  ContainerInterface|null $container Service container for resolve processor dependency injection
      * @param  bool $enableClient   Enable client
@@ -91,7 +78,7 @@ class Queue implements QueueInterface
      */
     public function __construct(
         string $appName,
-        array $transport,
+        AmqpConnection $connection,
         ?LoggerInterface $logger = null,
         ?ContainerInterface $container = null,
         bool $enableClient = true,
@@ -106,27 +93,14 @@ class Queue implements QueueInterface
         }
 
         $this->logger = $logger ?? new NullLogger();
-        $serializer ??= JsonSerializer::class;
 
-        $amqpLibrary = extension_loaded('amqp') ? AmqpConnectionFactory::class : AmqpBunnyConnectionFactory::class;
+        $this->connection = $connection;
 
-        if (!is_subclass_of($amqpLibrary, \Interop\Amqp\AmqpConnectionFactory::class)) {
-            throw new \LogicException('The $amqpLibrary must be implement of \Interop\Amqp\AmqpConnectionFactory');
-        }
-
-        $factory = new $amqpLibrary($transport);
-        $this->context = ($factory)->createContext();
-
-        if (in_array('rabbitmq', $factory->getConfig()->getSchemeExtensions(), true)) {
-            $this->setDelayStrategy(new RabbitMqDlxDelayStrategy($this));
-        } else {
-            $this->setDelayStrategy(null);
-        }
-
-        $this->setDefaultSerializer($serializer);
+        $this->setDefaultSerializer($serializer ?? JsonSerializer::class);
         $this->initSerializer();
 
         if ($enableClient) {
+            $this->setDelayStrategy(new RabbitMqDlxDelayStrategy($this));
             $this->client = new Client($this);
         }
 
@@ -147,7 +121,16 @@ class Queue implements QueueInterface
      */
     public function getContext(): AmqpContext
     {
-        return $this->context;
+        return $this->getConnection()->getContext();
+    }
+
+    /**
+     *
+     * @return AmqpConnection
+     */
+    public function getConnection(): AmqpConnection
+    {
+        return $this->connection;
     }
 
     /**

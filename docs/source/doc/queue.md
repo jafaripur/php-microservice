@@ -14,13 +14,16 @@ caption: Create instance of `Queue`
 
 $queue = new \Araz\MicroService\Queue(
     appName: 'micro-app-1',
-    transport: [
-        'dsn' => 'amqp+rabbitmq+ext://guest:guest@rabbitmq:5672/micro3?heartbeat_on_tick=1',
-        'lazy' => true,
-        'persisted' => true,
-        'heartbeat' => 10,
-        "qos_prefetch_count" => 1,
-    ],
+    connection: new \Araz\MicroService\AmqpConnection(
+        transport: [
+            'dsn' => 'amqp+rabbitmq+ext://guest:guest@rabbitmq:5672/micro3?heartbeat_on_tick=1',
+            'lazy' => true,
+            'persisted' => true,
+            'heartbeat' => 10,
+            "qos_prefetch_count" => 1,
+        ],
+        amqpLibrary: AmqpConnectionFactory::class // ext-amqp is default used library and can change to AmqpBunnyConnectionFactory::class if ext-amqp not installed
+    ),
     logger: null,
     container: null,
     enableClient: true,
@@ -37,7 +40,7 @@ $queue = new \Araz\MicroService\Queue(
 ### Parameters
 
 - `appName`: Application name, for example, current node name. This will add to message metadata and can use for another purpose in internal process.
-- `transport`: Array of configuration for rabbitmq. `dsn` for connection string for connecting to Rabbitmq, Other values is the configuration of rabbitmq.
+- `connection`: AmqpConnection object to configure RabbitMQ server, transport parameter Array of configuration for rabbitmq. `dsn` for connection string for connecting to Rabbitmq, Other values is the configuration of rabbitmq.
 - `logger`: Log system with [PSR-3](https://www.php-fig.org/psr/psr-3/) compatible. This is optional and can be null or an instance of `Psr\Log\LoggerInterface`.
 - `container`: [PSR-11](https://www.php-fig.org/psr/psr-11/) compatible service container for dependency injection on [`processor`](processor.md) and p`processor-consumer`](processor-consumer.md) file. This is optional and can be null or an instance of `Psr\Container\ContainerInterface`.
 - `enableClient`: Enable current queue object as a client.
@@ -46,7 +49,7 @@ $queue = new \Araz\MicroService\Queue(
 - `serializer`: Default serializer in sending the message with this implement `Araz\MicroService\Interfaces\SerializerInterface`. Default is `Araz\MicroService\Serializers\JsonSerializer` if null provided in defining `Queue`.
 
 ```{note}
-We check for [ext-amqp](https://github.com/php-amqp/php-amqp), If not installed we continue to use [Bunny](https://github.com/jakubkulhan/bunny).
+Default connection used [ext-amqp](https://github.com/php-amqp/php-amqp), This manually change to use [Bunny](https://github.com/jakubkulhan/bunny).
 ```
 
 ### Lazy Queue
