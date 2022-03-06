@@ -8,3 +8,7 @@ php ./vendor/bin/psalm
 
 php vendor/bin/phpunit --testsuit Unit
 #docker-compose up --build --exit-code-from micro micro
+
+#docker run --rm -v $PWD:/code montealegreluis/phuml phuml:diagram -r -o -a -b -e classic -p dot src diagram.png
+#docker run --rm -v $PWD:/code montealegreluis/phuml phuml:dot -r -a -i -o src diagram.gv
+#docker run --rm -v $PWD:/code montealegreluis/phuml phuml:statistics -r src diagram.txt

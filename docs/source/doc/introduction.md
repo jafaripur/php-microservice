@@ -4,7 +4,7 @@ With this structure we can define our processors class and listen to a specific 
 
 ## Features
 
-- Use PHP AMQP extension, fallback to Bunny library if `ext-amqp` not installed.
+- Use PHP AMQP extension and change to Bunny library if `ext-amqp` not installed.
 - PSR-3 compatible logging system.
 - PSR-11 compatible service container for dependecy injection on processor file.
 - Define processor class for responding to client calling methods.

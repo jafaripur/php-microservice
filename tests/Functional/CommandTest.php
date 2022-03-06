@@ -2,6 +2,7 @@
 
 namespace Araz\MicroService\Tests\Functional;
 
+use Araz\MicroService\AmqpConnection;
 use Araz\MicroService\Exceptions\CommandRejectException;
 use Araz\MicroService\Exceptions\CommandTimeoutException;
 use Araz\MicroService\Exceptions\SerializerNotFoundException;
@@ -22,10 +23,10 @@ class CommandTest extends TestCase
         if (!$this->queue) {
             $this->queue = new Queue(
                 'test-app',
-                [
+                new AmqpConnection([
                     'dsn' => $_ENV['AMQP_DSN'],
                     'persisted' => false,
-                ],
+                ]),
                 null,
                 null,
                 true,
