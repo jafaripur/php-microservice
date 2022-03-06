@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Araz\MicroService;
 
 use Enqueue\AmqpExt\AmqpConnectionFactory;
-use Enqueue\AmqpBunny\AmqpConnectionFactory as AmqpBunnyConnectionFactory;
 use Interop\Amqp\AmqpContext;
 
 class AmqpConnection
@@ -26,19 +25,12 @@ class AmqpConnection
     private $context;
 
     /**
-     * Connection factory
-     *
-     * @var \Interop\Amqp\AmqpConnectionFactory
-     */
-    private $factory;
-
-    /**
      *
      * @param  array       $transport
      * @param  string|null $amqpLibrary AmqpConnectionFactory|AmqpBunnyConnectionFactory
      */
     public function __construct(
-        private array $transport,
+        array $transport,
         ?string $amqpLibrary = AmqpConnectionFactory::class,
     ) {
         if (!is_subclass_of($amqpLibrary, \Interop\Amqp\AmqpConnectionFactory::class)) {
