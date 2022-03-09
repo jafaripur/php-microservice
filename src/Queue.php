@@ -92,12 +92,12 @@ class Queue implements QueueInterface
             throw new \LogicException('the $appName Application name is required!');
         }
 
+        $this->setDefaultSerializer($serializer ?? JsonSerializer::class);
+        $this->initSerializer();
+
         $this->logger = $logger ?? new NullLogger();
 
         $this->connection = $connection;
-
-        $this->setDefaultSerializer($serializer ?? JsonSerializer::class);
-        $this->initSerializer();
 
         if ($enableClient) {
             $this->setDelayStrategy(new RabbitMqDlxDelayStrategy($this));
