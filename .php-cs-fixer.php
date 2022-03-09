@@ -9,7 +9,7 @@ $finder = PhpCsFixer\Finder::create()
         '.github',
         'docker',
     ])
-    ->in(__DIR__ . "/../../");
+    ->in(__DIR__);
 
 $config = new PhpCsFixer\Config();
 
