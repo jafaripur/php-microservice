@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Araz\MicroService\Processors;
 
+use Araz\MicroService\Interfaces\RequestInterface;
 use Araz\MicroService\Processor;
+use Araz\MicroService\Processors\RequestResponse\Request;
 use Araz\MicroService\Queue;
 
 /**
@@ -15,10 +17,10 @@ abstract class Worker extends Processor
     /**
      * Process received worker
      *
-     * @param  mixed $body received data
+     * @param  Request $request received data
      * @return void
      */
-    abstract public function execute(mixed $body): void;
+    abstract public function execute(Request $request): void;
 
     /**
      * Worker name to run

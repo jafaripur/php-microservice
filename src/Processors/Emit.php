@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Araz\MicroService\Processors;
 
 use Araz\MicroService\Processor;
+use Araz\MicroService\Processors\RequestResponse\Request;
 use Araz\MicroService\Queue;
 
 /**
@@ -15,10 +16,10 @@ abstract class Emit extends Processor
     /**
      * Process received emit
      *
-     * @param  mixed $body received data
+     * @param  Request $request received data
      * @return void
      */
-    abstract public function execute(mixed $body): void;
+    abstract public function execute(Request $request): void;
 
     /**
      * Get topic name

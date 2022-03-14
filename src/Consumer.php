@@ -7,12 +7,20 @@ namespace Araz\MicroService;
 use Araz\MicroService\Processors\Command;
 use Araz\MicroService\Processors\Worker;
 use Araz\MicroService\Processors\Emit;
+use Araz\MicroService\Processors\RequestResponse\Request;
+use Araz\MicroService\Processors\RequestResponse\RequestTopic;
+use Araz\MicroService\Processors\RequestResponse\Response;
 use Araz\MicroService\Processors\Topic;
 use Closure;
 use Generator;
-use Interop\Amqp\AmqpConsumer;
+
+//use Interop\Amqp\AmqpConsumer;
 use Interop\Amqp\Impl\AmqpMessage;
-use Interop\Amqp\Impl\AmqpTopic;
+
+//use Interop\Amqp\Impl\AmqpTopic;
+use Interop\Amqp\AmqpTopic as AmqpTopic;
+use Interop\Queue\Consumer as AmqpConsumer;
+
 use Psr\Container\ContainerInterface;
 use Yiisoft\Injector\Injector;
 
@@ -101,7 +109,13 @@ final class Consumer
          */
         foreach ($consumers as $consumerIdentify => $consumer) {
             $subscriptionConsumer->subscribe($consumer, Closure::fromCallable([$this, 'receiveCallback']));
-            $this->consumersMapping[$this->hashKey($consumer->getConsumerTag())] = $consumerIdentify;
+
+            /**
+             * @var string $consumerTag
+             * @var \Interop\Amqp\AmqpConsumer $consumer
+             */
+            $consumerTag = $consumer->getConsumerTag();
+            $this->consumersMapping[$this->hashKey($consumerTag)] = $consumerIdentify;
         }
 
         if (!$consumers->getReturn()) {
@@ -142,7 +156,14 @@ final class Consumer
      */
     private function receiveCallback(AmqpMessage $message, AmqpConsumer $consumer): bool
     {
-        $processorConsumer = $this->findProcessorConsumer($consumer->getConsumerTag());
+
+        /**
+         * @var string $consumerTag
+         * @var \Interop\Amqp\AmqpConsumer $consumer
+         */
+        $consumerTag = (string)$consumer->getConsumerTag();
+
+        $processorConsumer = $this->findProcessorConsumer($consumerTag);
 
         /**
          * @var string
@@ -181,6 +202,9 @@ final class Consumer
             return $this->returnReceiveCallbackResult(true, Processor::REJECT, $method);
         }
 
+        /**
+         * @var Worker|Topic|Emit|Command $processor
+         */
         if (!$processor = $this->getReceivedMessageProcessor($method, $message)) {
             $consumer->reject($message, true);
             $this->queue->getLogger()->error('Processor not found!', [
@@ -189,12 +213,22 @@ final class Consumer
             return $this->returnReceiveCallbackResult(true, Processor::REQUEUE, $method, $processor);
         }
 
-        /**
-         * @var mixed
-         */
-        $messageData = $serializer->unserialize($message->getBody());
+        if ($processor->isTopic()) {
+            $request = new RequestTopic(
+                (string)$message->getMessageId(),
+                $serializer->unserialize($message->getBody()),
+                (int)$message->getTimestamp(),
+                (string)$message->getRoutingKey()
+            );
+        } else {
+            $request = new Request(
+                (string)$message->getMessageId(),
+                $serializer->unserialize($message->getBody()),
+                (int)$message->getTimestamp(),
+            );
+        }
 
-        if (!$processor->beforeExecute($messageData)) {
+        if (!$processor->beforeExecute($request)) {
             $consumer->reject($message, false);
 
             if ($processor->isCommand()) {
@@ -207,28 +241,8 @@ final class Consumer
             return $this->returnReceiveCallbackResult(true, Processor::REJECT, $method, $processor);
         }
 
-        $executeResult = null;
-
-        if ($processor->isTopic()) {
-            /**
-             * @var Topic $processor
-             */
-            $processor->execute($message->getRoutingKey(), $messageData);
-        } elseif ($processor->isCommand()) {
-            /**
-             * @var Command $processor
-             */
-            $executeResult = $processor->execute($messageData);
-        } else {
-            /**
-             * @var Emit|Worker $processor
-             */
-            $processor->execute($messageData);
-        }
-
-        //$executeResult = $processor->isTopic() ? $processor->execute($message->getRoutingKey(), $messageData) : $processor->execute($messageData);
-
-        $processor->afterExecute($messageData);
+        $executeResult = $processor->execute($request);
+        $processor->afterExecute($request);
 
         /**
          * @var string $ackResult
@@ -244,6 +258,9 @@ final class Consumer
         $processorConsumer->afterMessageAcknowledge($processor, $ackResult, $message, $consumer);
 
         if ($processor->isCommand()) {
+            /**
+             * @var Command $processor
+             */
             $processor->afterMessageReplytoCommand($message->getMessageId(), $this->replyBackMessage($message, $executeResult, $ackResult), $message->getCorrelationId(), $ackResult);
         }
 
@@ -260,7 +277,7 @@ final class Consumer
     private function getReceivedMessageProcessor(string $method, AmqpMessage $message): ?Processor
     {
         /**
-         * @var string
+         * @var string $queueName
          */
         $queueName = '';
 
@@ -270,23 +287,23 @@ final class Consumer
         $routingKey = '';
 
         /**
-         * @var string
+         * @var string $topic
          */
         $topic = '';
 
         /**
-         * @var string
+         * @var string $job
          */
         $job = '';
 
         if ($method == $this->queue::METHOD_JOB_TOPIC || $method == $this->queue::METHOD_JOB_EMIT) {
-            $topic = MessageProperty::getTopic($message, '');
+            $topic = (string)MessageProperty::getTopic($message, '');
             if ($method == $this->queue::METHOD_JOB_TOPIC) {
                 $routingKey = (string)$message->getRoutingKey();
             }
         } elseif ($method == $this->queue::METHOD_JOB_WORKER || $method == $this->queue::METHOD_JOB_COMMAND) {
-            $queueName = MessageProperty::getQueue($message, '');
-            $job = MessageProperty::getJob($message, '');
+            $queueName = (string)MessageProperty::getQueue($message, '');
+            $job = (string)MessageProperty::getJob($message, '');
         }
 
         return $this->findProcessor($method, $queueName, $topic, $routingKey, $job);
@@ -296,24 +313,24 @@ final class Consumer
      * After receive command, We reply result to producer
      *
      * @param AmqpMessage $message
-     * @param mixed       $result  result of command for reply back
+     * @param Response|null       $response  result of command for reply back
      * @param string      $status  status of reply, ack, reject or requeue
      *
      * @return null|string message id
      */
-    private function replyBackMessage(AmqpMessage $message, mixed $result, string $status): string|null
+    private function replyBackMessage(AmqpMessage $message, ?Response $response, string $status): string|null
     {
 
         /**
          * @var AmqpMessage
          */
-        $replyMessage = $this->queue->createMessage($result, false);
+        $replyMessage = $this->queue->createMessage($response ? $response->getBody() : null, false);
         $replyMessage->setCorrelationId($message->getCorrelationId());
         $replyMessage->setReplyTo($message->getReplyTo());
         MessageProperty::setStatus($replyMessage, $status);
 
         $this->queue->createProducer()
-            ->send($this->queue->createQueue($message->getReplyTo()), $replyMessage);
+            ->send($this->queue->createQueue((string)$message->getReplyTo()), $replyMessage);
 
         return $replyMessage->getMessageId();
     }

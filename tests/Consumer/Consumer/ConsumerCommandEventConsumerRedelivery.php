@@ -7,8 +7,10 @@ namespace Araz\MicroService\Tests\Consumer\Consumer;
 use Araz\MicroService\Processor;
 use Araz\MicroService\ProcessorConsumer;
 use Generator;
-use Interop\Amqp\AmqpConsumer;
-use Interop\Amqp\Impl\AmqpMessage;
+//use Interop\Amqp\AmqpConsumer;
+//use Interop\Amqp\Impl\AmqpMessage;
+use Interop\Queue\Consumer as AmqpConsumer;
+use Interop\Queue\Message as AmqpMessage;
 
 final class ConsumerCommandEventConsumerRedelivery extends ProcessorConsumer
 {

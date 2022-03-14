@@ -61,9 +61,9 @@ final class EmitSender extends SenderBase
     /**
      * Emit message to all consumer which subscribe to specific topic name
      *
-     * @return mixed         message id
+     * @return string|null         message id
      */
-    public function send(): mixed
+    public function send(): ?string
     {
         if (empty(trim($this->topicName))) {
             throw new \LogicException("Topic name is required!");

@@ -5,17 +5,26 @@ declare(strict_types=1);
 namespace Araz\MicroService\Interfaces;
 
 use Enqueue\AmqpTools\DelayStrategy;
-use Interop\Amqp\AmqpConsumer;
-use Interop\Amqp\AmqpContext;
-use Interop\Amqp\AmqpDestination;
-use Interop\Amqp\AmqpProducer;
 use Interop\Amqp\Impl\AmqpBind;
+
+use Interop\Amqp\AmqpDestination;
 use Interop\Amqp\Impl\AmqpMessage;
-use Interop\Amqp\Impl\AmqpQueue;
-use Interop\Amqp\Impl\AmqpTopic;
+//use Interop\Amqp\Impl\AmqpQueue;
+use Interop\Amqp\AmqpQueue as AmqpQueue;
+
+//use Interop\Amqp\Impl\AmqpTopic;
+use Interop\Amqp\AmqpTopic as AmqpTopic;
+
+//use Interop\Amqp\AmqpConsumer;
+use Interop\Queue\Consumer as AmqpConsumer;
+
+use Interop\Amqp\AmqpContext;
+//use Interop\Amqp\AmqpProducer;
+use Interop\Queue\Producer as AmqpProducer;
+use Interop\Queue\Context;
 use Interop\Queue\SubscriptionConsumer;
+
 use Psr\Log\LoggerInterface;
-use Interop\Queue\Message;
 
 interface QueueInterface
 {
@@ -37,9 +46,9 @@ interface QueueInterface
 
     /**
      *
-     * @return AmqpContext|\Enqueue\AmqpBunny\AmqpContext
+     * @return AmqpContext|Context
      */
-    public function getContext(): AmqpContext;
+    public function getContext(): AmqpContext|Context;
 
     /**
      *

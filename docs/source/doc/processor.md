@@ -22,8 +22,8 @@ Each processor can override this method and is optional:
 
 - `getQueue()`: Access to current [`queue`](create_queue_instance) object which is execute current processor.
 - `getProcessorConsumer()`: Access to current [`processor-consumer`](processor-consumer.md) object which is execute current processor.
-- `beforeExecute(mixed $data)`: Run before the `execute()` method.
-- `afterExecute(mixed $data)`: Run after the `execute()` method.
+- `beforeExecute(Response $request)`: Run before the `execute()` method.
+- `afterExecute(Response $request)`: Run after the `execute()` method.
 - `process(AmqpMessage $message, AmqpConsumer $consumer)`: Run after the `afterExecute()` method to decision current message received should be accept or reject or requeue. return value can be : `ack`, `reject`, `requeue`.
 - `afterMessageAcknowledge(string $status)`: Run after message acknowledge. status can be : `ack`, `reject`, `requeue`.
 - `resetAfterProcess()`: Return boolean value. If returned value is true, each time message received and execute the processor, processor object should recreate.
@@ -46,15 +46,17 @@ declare(strict_types=1);
 namespace Application\Queue\Processor\User\Command;
 
 use Araz\MicroService\Processors\Command;
+use Araz\MicroService\Processors\RequestResponse\Request;
+use Araz\MicroService\Processors\RequestResponse\Response;
 
 final class UserGetInfoCommand extends Command
 {
-    public function execute(mixed $body): mixed
+    public function execute(Request $request): Response
     {
-        return [
+        return new Response([
             'id' => 123,
             'name' => 'Test',
-        ];
+        ]);
     }
 
     public function getJobName(): string
@@ -76,7 +78,7 @@ We can define several processor for same queue and different job.
 
 #### Command Methods
 
-- `execute(mixed $body)`: This should be implemented in command class and is mandatory. Run when new command received, `$body` variable is a data received from client. Any value return from this method reply back to the client as a response.
+- `execute(Request $request)`: This should be implemented in command class and is mandatory. Run when new command received, `$request` variable is a object of received from client. Response object return from this method reply back to the client as a response.
 - `getJobName()`: This should be implemented in command class and is mandatory. Job name of the command.
 - `afterMessageReplytoCommand(string $messageId, string $replyId, string $correlationId, string $status)`: This method run after we reply back to command.
 
@@ -96,10 +98,11 @@ declare(strict_types=1);
 namespace Application\Queue\Processor\User\Worker;
 
 use Araz\MicroService\Processors\Worker;
+use Araz\MicroService\Processors\RequestResponse\Request;
 
 final class UserProfileAnalysisWorker extends Worker
 {
-    public function execute(mixed $body): void
+    public function execute(Request $request): void
     {
         // Do you work.
     }
@@ -121,7 +124,7 @@ final class UserProfileAnalysisWorker extends Worker
 
 #### Worker Methods
 
-- `execute(mixed $body)`: This should be implemented in worker class and is mandatory. Run when new worker received, `$body` variable is a data received from client.
+- `execute(Request $request)`: This should be implemented in worker class and is mandatory. Run when new worker received, `$request` variable is a object of received from client.
 - `getJobName()`: This should be implemented in worker class and is mandatory. Job name of the worker.
 - `durableQueue()`: Return boolean value. If returned value is true, defined queue will be durable.
 
@@ -139,12 +142,13 @@ caption: Emit definition
 declare(strict_types=1);
 
 namespace Application\Queue\Processor\User\Emit;
+use Araz\MicroService\Processors\RequestResponse\Request;
 
 use Araz\MicroService\Processors\Emit;
 
 final class UserLoggedInEmit extends Emit
 {
-    public function execute(mixed $body): void
+    public function execute(Request $request): void
     {
         // Do you work.
     }
@@ -164,7 +168,7 @@ final class UserLoggedInEmit extends Emit
 
 #### Emit Methods
 
-- `execute(mixed $body)`: This should be implemented in emit class and is mandatory. Run when new emit received, `$body` variable is a data received from client.
+- `execute(Request $request)`: This should be implemented in emit class and is mandatory. Run when new emit received, `$request` variable is object of data received from client.
 - `getTopicName()`: This should be implemented in emit class and is mandatory. Topic name should emit listen to it.
 - `durableQueue()`: Return boolean value. If returned value is true, defined queue will be durable.
 
@@ -184,10 +188,11 @@ declare(strict_types=1);
 namespace Application\Queue\Processor\User\Topic;
 
 use Araz\MicroService\Processors\Topic;
+use Araz\MicroService\Processors\RequestResponse\RequestTopic;
 
 final class UserCreatedTopic extends Topic
 {
-    public function execute(string $routingKey, mixed $body): void
+    public function execute(RequestTopic $request): void
     {
         // Do you work.
     }
@@ -215,7 +220,7 @@ final class UserCreatedTopic extends Topic
 
 #### Topic Methods
 
-- `execute(string $routingKey, mixed $body)`: This should be implemented in topic class and is mandatory. Run when new topic received, `$body` variable is a data received from client and `$routingKey` to indicate which routing key come to this processor.
+- `execute(RequestTopic $request)`: This should be implemented in emit class and is mandatory. Run when new emit received, `$request` variable is object of data received from client.
 - `getTopicName()`: This should be implemented in topic class and is mandatory. Topic name should topic listen to it.
 - `getRoutingKeys()`: This should be implemented in topic class and is mandatory. Routing key name should topic listen to it. One topic class can listen to several routing key in same topic.
 - `durableQueue()`: Return boolean value. If returned value is true, defined queue will be durable.

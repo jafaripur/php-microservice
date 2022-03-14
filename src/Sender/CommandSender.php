@@ -12,6 +12,7 @@ use Araz\MicroService\MessageProperty;
 use Interop\Amqp\Impl\AmqpMessage;
 use Interop\Amqp\Impl\AmqpQueue;
 use Araz\MicroService\Processor;
+use Araz\MicroService\Processors\RequestResponse\Response;
 
 final class CommandSender extends SenderBase
 {
@@ -105,14 +106,14 @@ final class CommandSender extends SenderBase
      * Send command
      *
      *
-     * @return mixed
+     * @return Response
      *
      * @throws CommandTimeoutException
      * @throws CommandRejectException
      * @throws CorrelationInvalidException
      * @throws SerializerNotFoundException
      */
-    public function send(): mixed
+    public function send(): Response
     {
         if (empty(trim($this->queueName))) {
             throw new \LogicException("Queue name is required!");
@@ -185,6 +186,8 @@ final class CommandSender extends SenderBase
 
         $consumer->acknowledge($reply);
 
-        return $serializer->unserialize($reply->getBody());
+        return new Response(
+            $serializer->unserialize($reply->getBody())
+        );
     }
 }

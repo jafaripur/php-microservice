@@ -7,6 +7,8 @@ use Araz\MicroService\Exceptions\CommandRejectException;
 use Araz\MicroService\Exceptions\CommandTimeoutException;
 use Araz\MicroService\Exceptions\SerializerNotFoundException;
 use Araz\MicroService\Processor;
+use Araz\MicroService\Processors\RequestResponse\Response;
+use Araz\MicroService\Processors\RequestResponse\ResponseAsync;
 use Araz\MicroService\Queue;
 use Araz\MicroService\Serializers\PhpSerializer;
 use Araz\MicroService\Tests\Functional\Processor\WorkerCommand\UserProfileInfoCommandProcessorConsumerEventsWorker;
@@ -108,7 +110,7 @@ class CommandTest extends TestCase
             ->setPriority(0)
             ->send();
 
-        $this->assertEquals($result, ['id' => 123]);
+        $this->assertEquals($result->getBody(), ['id' => 123]);
     }
 
     public function testQueueSendAndReceiveAsyncCommand()
@@ -122,9 +124,12 @@ class CommandTest extends TestCase
             ->command('service_command', 'profile_info', $data['command-1'], 'command-1', 2000, 0)
             ->command('service_command', 'profile_info', $data['command-2'], 'command-2', 2000, 1);
 
-        foreach ($commands->receive() as $correlationId => $dataReceived) {
-            $this->assertEquals($dataReceived['result'], $data[$correlationId]);
-            $this->assertEquals($dataReceived['ack'], Processor::ACK);
+        /**
+         * @var ResponseAsync  $response
+         */
+        foreach ($commands->receive() as $correlationId => $response) {
+            $this->assertEquals($response->getBody(), $data[$correlationId]);
+            $this->assertEquals($response->getAck(), Processor::ACK);
         }
     }
 
@@ -154,9 +159,13 @@ class CommandTest extends TestCase
             ->command('service_command', 'profile_info_reject', $data['command-1'], 'command-1', 2000)
             ->command('service_command', 'profile_info_reject', $data['command-2'], 'command-2', 2000);
 
-        foreach ($commands->receive() as $correlationId => $dataReceived) {
-            $this->assertEquals($dataReceived['result'], null);
-            $this->assertEquals($dataReceived['ack'], Processor::REJECT);
+        /**
+         * @var ResponseAsync  $response
+         */
+        foreach ($commands->receive() as $correlationId => $response) {
+            $this->assertInstanceOf(ResponseAsync::class, $response);
+            $this->assertEquals($response->getBody(), null);
+            $this->assertEquals($response->getAck(), Processor::REJECT);
         }
     }
 
@@ -181,7 +190,7 @@ class CommandTest extends TestCase
 
     public function testQueueSendAndReceiveEventsCommandProcessor()
     {
-        $result = $this->queue->getClient()->command()
+        $response = $this->queue->getClient()->command()
             ->setQueueName('service_command')
             ->setJobName('profile_info_command_events_processor')
             ->setData(['id' => 123])
@@ -189,7 +198,9 @@ class CommandTest extends TestCase
             ->setPriority(5)
             ->send();
 
-        $this->assertEquals($result, ['id' => 123]);
+        $this->assertInstanceOf(Response::class, $response);
+
+        $this->assertEquals($response->getBody(), ['id' => 123]);
 
         $this->queue->getConsumer()->consume(50);
 
@@ -205,7 +216,7 @@ class CommandTest extends TestCase
 
     public function testQueueSendAndReceiveEventsCommandProcessorConsumer()
     {
-        $result = $this->queue->getClient()->command()
+        $response = $this->queue->getClient()->command()
             ->setQueueName('service_command')
             ->setJobName('profile_info_command_events_processor_consumer')
             ->setData(['id' => 123])
@@ -213,7 +224,9 @@ class CommandTest extends TestCase
             ->setPriority(5)
             ->send();
 
-        $this->assertEquals($result, ['id' => 123]);
+        $this->assertInstanceOf(Response::class, $response);
+
+        $this->assertEquals($response->getBody(), ['id' => 123]);
 
         $this->queue->getConsumer()->consume(50);
 
@@ -226,7 +239,7 @@ class CommandTest extends TestCase
 
     public function testQueueSendAndReceiveEventsCommandProcessorConsumerRedelivery()
     {
-        $result = $this->queue->getClient()->command()
+        $response = $this->queue->getClient()->command()
             ->setQueueName('service_command')
             ->setJobName('profile_info_command_events_processor_consumer_redelivery')
             ->setData(['id' => 123])
@@ -234,7 +247,9 @@ class CommandTest extends TestCase
             ->setPriority(5)
             ->send();
 
-        $this->assertEquals($result, ['id' => 123]);
+        $this->assertInstanceOf(Response::class, $response);
+
+        $this->assertEquals($response->getBody(), ['id' => 123]);
 
         $this->queue->getConsumer()->consume(50);
 

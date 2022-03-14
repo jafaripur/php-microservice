@@ -6,6 +6,7 @@ namespace Araz\MicroService\Sender;
 
 use Araz\MicroService\MessageProperty;
 use Interop\Amqp\Impl\AmqpTopic;
+use Interop\Amqp\Impl\AmqpMessage;
 
 final class TopicSender extends SenderBase
 {
@@ -77,9 +78,9 @@ final class TopicSender extends SenderBase
     /**
      * Emit message to all consumer which subscribe to specific topic name and routing keys
      *
-     * @return mixed         message id
+     * @return string|null         message id
      */
-    public function send(): mixed
+    public function send(): ?string
     {
         if (empty(trim($this->topicName))) {
             throw new \LogicException("Topic name is required!");
@@ -102,6 +103,9 @@ final class TopicSender extends SenderBase
 
         $this->queue->bind($topic, $queue, $this->routingKey);
 
+        /**
+         * @var AmqpMessage $message
+         */
         $message = $this->queue->createMessage($this->data);
         MessageProperty::setTopic($message, $this->topicName);
         MessageProperty::setMethod($message, $this->queue::METHOD_JOB_TOPIC);

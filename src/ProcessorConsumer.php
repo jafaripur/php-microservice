@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Araz\MicroService;
 
 use Generator;
-use Interop\Amqp\AmqpConsumer;
+
+//use Interop\Amqp\AmqpConsumer;
+use Interop\Queue\Consumer as AmqpConsumer;
 use Interop\Amqp\Impl\AmqpMessage;
 
 /**

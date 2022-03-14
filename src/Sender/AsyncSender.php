@@ -10,11 +10,17 @@ use Araz\MicroService\Exceptions\CorrelationInvalidException;
 use Araz\MicroService\Exceptions\SerializerNotFoundException;
 use Araz\MicroService\MessageProperty;
 use Araz\MicroService\Processor;
+use Araz\MicroService\Processors\RequestResponse\ResponseAsync;
 use Araz\MicroService\Queue;
+
 use Interop\Amqp\Impl\AmqpMessage;
-use Interop\Amqp\Impl\AmqpQueue;
+
+//use Interop\Amqp\Impl\AmqpQueue;
+use Interop\Amqp\AmqpQueue as AmqpQueue;
 use Generator;
-use Interop\Amqp\AmqpConsumer;
+//use Interop\Amqp\AmqpConsumer;
+use Interop\Queue\Consumer as AmqpConsumer;
+use Interop\Queue\Message;
 
 final class AsyncSender
 {
@@ -30,16 +36,8 @@ final class AsyncSender
 
     protected int $timeout;
 
-    /**
-     *
-     * @var AmqpQueue
-     */
     private AmqpQueue $queueResponse;
 
-    /**
-     *
-     * @var AmqpConsumer
-     */
     private AmqpConsumer $consumer;
 
     /**
@@ -103,6 +101,9 @@ final class AsyncSender
 
         $queue = $this->queue->createQueue($queueName, false);
 
+        /**
+         * @var AmqpMessage $message
+         */
         $message = $this->queue->createMessage($data, false);
         MessageProperty::setQueue($message, $queueName);
         MessageProperty::setJob($message, $jobName);
@@ -123,7 +124,7 @@ final class AsyncSender
     /**
      * Start receiving command responses
      *
-     * @return Generator
+     * @return Generator<string, ResponseAsync, 0|positive-int>
      *
      * @throws CommandTimeoutException
      * @throws CommandRejectException
@@ -138,14 +139,17 @@ final class AsyncSender
          * @var AmqpMessage $reply
          */
         foreach ($listen as $reply) {
+            /**
+             * @var string $correlationId
+             */
             $correlationId = $reply->getCorrelationId();
 
             if (MessageProperty::getStatus($reply) == Processor::REJECT) {
                 $this->consumer->acknowledge($reply);
-                yield $correlationId => [
-                    'ack' => Processor::REJECT,
-                    'result' => null,
-                ];
+                yield $correlationId => new ResponseAsync(
+                    Processor::REJECT,
+                    null
+                );
                 continue;
             }
 
@@ -173,10 +177,10 @@ final class AsyncSender
 
             $this->consumer->acknowledge($reply);
 
-            yield $correlationId => [
-                'ack' => Processor::ACK,
-                'result' => $serializer->unserialize($reply->getBody()),
-            ];
+            yield $correlationId => new ResponseAsync(
+                Processor::ACK,
+                $serializer->unserialize($reply->getBody())
+            );
         }
 
         if ($listen->getReturn() != count($this->messages)) {
@@ -187,7 +191,7 @@ final class AsyncSender
     }
 
     /**
-     * @psalm-return Generator<int, \Interop\Amqp\AmqpMessage, mixed, 0|positive-int>
+     * @psalm-return Generator<int, AmqpMessage|Message, mixed, 0|positive-int>
      */
     private function listen(): Generator
     {

@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace Araz\MicroService\Tests\Consumer\Processor\Worker;
 
 use Araz\MicroService\Processor;
+use Araz\MicroService\Processors\RequestResponse\Request;
 use Araz\MicroService\Processors\Worker;
-use Interop\Amqp\AmqpConsumer;
-use Interop\Amqp\Impl\AmqpMessage;
+//use Interop\Amqp\AmqpConsumer;
+//use Interop\Amqp\Impl\AmqpMessage;
+
+use Interop\Queue\Consumer as AmqpConsumer;
+use Interop\Queue\Message as AmqpMessage;
 
 final class UserProfileAnalysisWorker extends Worker
 {
@@ -21,9 +25,9 @@ final class UserProfileAnalysisWorker extends Worker
         'processorFinished' => '',
     ];
 
-    public function execute(mixed $body): void
+    public function execute(Request $request): void
     {
-        $this->events['data'] = $body;
+        $this->events['data'] = $request->getBody();
     }
 
     public function getQueueName(): string
@@ -48,15 +52,15 @@ final class UserProfileAnalysisWorker extends Worker
         return Processor::ACK;
     }
 
-    public function beforeExecute(mixed $data): bool
+    public function beforeExecute(Request $request): bool
     {
-        $this->events['beforeExecute'] = $data;
+        $this->events['beforeExecute'] = $request->getBody();
         return true;
     }
 
-    public function afterExecute(mixed $data): void
+    public function afterExecute(Request $request): void
     {
-        $this->events['afterExecute'] = $data;
+        $this->events['afterExecute'] = $request->getBody();
     }
 
     public function afterMessageAcknowledge(string $status): void

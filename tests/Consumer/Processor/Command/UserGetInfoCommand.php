@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Araz\MicroService\Tests\Consumer\Processor\Command;
 
 use Araz\MicroService\Processors\Command;
+use Araz\MicroService\Processors\RequestResponse\Request;
+use Araz\MicroService\Processors\RequestResponse\Response;
 
 final class UserGetInfoCommand extends Command
 {
-    public function execute(mixed $body): mixed
+    public function execute(Request $request): Response
     {
-        return $body;
+        return new Response($request->getBody());
     }
 
     public function getQueueName(): string

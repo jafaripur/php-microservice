@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Araz\MicroService\Tests\Consumer\Processor\Command;
 
 use Araz\MicroService\Processors\Command;
-use Interop\Amqp\AmqpConsumer;
-use Interop\Amqp\AmqpMessage;
+use Araz\MicroService\Processors\RequestResponse\Request;
+use Araz\MicroService\Processors\RequestResponse\Response;
+//use Interop\Amqp\AmqpConsumer;
+//use Interop\Amqp\AmqpMessage;
+use Interop\Queue\Consumer as AmqpConsumer;
+use Interop\Queue\Message as AmqpMessage;
 
 final class UserGetInfoCommandReject extends Command
 {
@@ -15,9 +19,9 @@ final class UserGetInfoCommandReject extends Command
         return self::REJECT;
     }
 
-    public function execute(mixed $body): mixed
+    public function execute(Request $request): Response
     {
-        return $body;
+        return new Response($request->getBody());
     }
 
     public function getQueueName(): string

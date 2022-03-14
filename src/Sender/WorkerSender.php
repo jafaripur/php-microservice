@@ -114,9 +114,9 @@ final class WorkerSender extends SenderBase
     /**
      * Send to Worker
      *
-     * @return mixed
+     * @return string|null
      */
-    public function send(): mixed
+    public function send(): ?string
     {
         if (empty(trim($this->queueName))) {
             throw new \LogicException("Queue name is required!");

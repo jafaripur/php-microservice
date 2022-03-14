@@ -6,8 +6,12 @@ namespace Araz\MicroService\Tests\Consumer\Processor\Command;
 
 use Araz\MicroService\Processor;
 use Araz\MicroService\Processors\Command;
-use Interop\Amqp\AmqpConsumer;
-use Interop\Amqp\Impl\AmqpMessage;
+use Araz\MicroService\Processors\RequestResponse\Request;
+use Araz\MicroService\Processors\RequestResponse\Response;
+//use Interop\Amqp\AmqpConsumer;
+//use Interop\Amqp\Impl\AmqpMessage;
+use Interop\Queue\Consumer as AmqpConsumer;
+use Interop\Queue\Message as AmqpMessage;
 
 final class UserGetInfoCommandEventsProcessor extends Command
 {
@@ -20,9 +24,9 @@ final class UserGetInfoCommandEventsProcessor extends Command
         'processorFinished' => '',
     ];
 
-    public function execute(mixed $body): mixed
+    public function execute(Request $request): Response
     {
-        return $body;
+        return new Response($request->getBody());
     }
 
     public function getQueueName(): string
@@ -56,15 +60,15 @@ final class UserGetInfoCommandEventsProcessor extends Command
         return Processor::ACK;
     }
 
-    public function beforeExecute(mixed $data): bool
+    public function beforeExecute(Request $request): bool
     {
-        $this->events['beforeExecute'] = $data;
+        $this->events['beforeExecute'] = $request->getBody();
         return true;
     }
 
-    public function afterExecute(mixed $data): void
+    public function afterExecute(Request $request): void
     {
-        $this->events['afterExecute'] = $data;
+        $this->events['afterExecute'] = $request->getBody();
     }
 
     public function afterMessageAcknowledge(string $status): void

@@ -6,7 +6,6 @@ use Araz\MicroService\AmqpConnection;
 use Araz\MicroService\Processor;
 use Araz\MicroService\Queue;
 use Araz\MicroService\Tests\Functional\Processor\WorkerEmit\UserLoggedInEmitWorker;
-use Araz\MicroService\Tests\Mock\Processor\Emit\UserLoggedInEmit;
 use PHPUnit\Framework\TestCase;
 
 class EmitTest extends TestCase
@@ -86,10 +85,10 @@ class EmitTest extends TestCase
             ->setDelay(100)
             ->send();
 
-        $this->queue->getConsumer()->consume(50);
+        $this->queue->getConsumer()->consume(80);
         $this->assertEquals(UserLoggedInEmitWorker::$receivedData, null);
 
-        $this->queue->getConsumer()->consume(80);
+        $this->queue->getConsumer()->consume(70);
         $this->assertEquals(UserLoggedInEmitWorker::$receivedData, [
             'id' => $id,
             'data' => $data,

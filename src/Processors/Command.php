@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Araz\MicroService\Processors;
 
 use Araz\MicroService\Processor;
+use Araz\MicroService\Processors\RequestResponse\Request;
+use Araz\MicroService\Processors\RequestResponse\Response;
 use Araz\MicroService\Queue;
 
 /**
@@ -15,10 +17,10 @@ abstract class Command extends Processor
     /**
      * Process received command
      *
-     * @param  mixed $body received data
-     * @return mixed data which send to sender
+     * @param  Request $request received data
+     * @return Response data which send to sender
      */
-    abstract public function execute(mixed $body): mixed;
+    abstract public function execute(Request $request): Response;
 
     /**
      * Command name to run

@@ -67,24 +67,8 @@ $commands = $queue->getSender()->async($asyncTimeout)
 // Do more action ...
 
 // In the last use receive to get data back from server
-foreach($commands->receive() as $correlationId => $data) {
+foreach($commands->receive() as $correlationId => $response) {
 
-    /**
-     * 
-     * $data sample
-     * ack can be reject, requeue, ack, means command result status
-     * 
-     * Array
-     *   (
-     *       [ack] => ack
-     *       [result] => Array
-     *           (
-     *               [id] => 123
-     *               [name] => Test
-     *           )
-     *   )
-     * 
-     */
 }
 
 ```

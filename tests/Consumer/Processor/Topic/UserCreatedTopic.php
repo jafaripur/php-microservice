@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace Araz\MicroService\Tests\Consumer\Processor\Topic;
 
 use Araz\MicroService\Processor;
+use Araz\MicroService\Processors\RequestResponse\RequestTopic;
 use Araz\MicroService\Processors\Topic;
-use Interop\Amqp\AmqpConsumer;
-use Interop\Amqp\Impl\AmqpMessage;
+//use Interop\Amqp\AmqpConsumer;
+//use Interop\Amqp\Impl\AmqpMessage;
+
+use Interop\Queue\Consumer as AmqpConsumer;
+use Interop\Queue\Message as AmqpMessage;
 
 final class UserCreatedTopic extends Topic
 {
@@ -22,10 +26,10 @@ final class UserCreatedTopic extends Topic
         'processorFinished' => '',
     ];
 
-    public function execute(string $routingKey, mixed $body): void
+    public function execute(RequestTopic $request): void
     {
-        $this->events['routingKey'] = $routingKey;
-        $this->events['data'] = $body;
+        $this->events['routingKey'] = $request->getRoutingKey();
+        $this->events['data'] = $request->getBody();
     }
 
     public function getTopicName(): string
@@ -58,15 +62,15 @@ final class UserCreatedTopic extends Topic
         return Processor::ACK;
     }
 
-    public function beforeExecute(mixed $data): bool
+    public function beforeExecute($request): bool
     {
-        $this->events['beforeExecute'] = $data;
+        $this->events['beforeExecute'] = $request->getBody();
         return true;
     }
 
-    public function afterExecute(mixed $data): void
+    public function afterExecute($request): void
     {
-        $this->events['afterExecute'] = $data;
+        $this->events['afterExecute'] = $request->getBody();
     }
 
     public function afterMessageAcknowledge(string $status): void

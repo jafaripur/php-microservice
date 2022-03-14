@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace Araz\MicroService;
 
+use Araz\MicroService\Interfaces\RequestInterface;
 use Araz\MicroService\Processors\Command;
 use Araz\MicroService\Processors\Emit;
+use Araz\MicroService\Processors\RequestResponse\Request;
+use Araz\MicroService\Processors\RequestResponse\RequestTopic;
+use Araz\MicroService\Processors\RequestResponse\Response;
 use Araz\MicroService\Processors\Topic;
 use Araz\MicroService\Processors\Worker;
-use Interop\Amqp\AmqpConsumer;
-use Interop\Amqp\Impl\AmqpMessage;
+
+use Interop\Queue\Consumer as AmqpConsumer;
+use Interop\Queue\Message as AmqpMessage;
+
+//use Interop\Amqp\AmqpConsumer;
+//use Interop\Amqp\Impl\AmqpMessage;
 
 /**
  * If service container availale, dependencies will inject in creation of object __construct(...)
@@ -43,6 +51,29 @@ abstract class Processor
      * @return void
      */
     abstract protected function validateProcessor(): void;
+
+    /**
+     * Run before the main action (execute)
+     * With returning false, message => reject
+     *
+     * @param Request|RequestTopic   $request  received data
+     *
+     * @return bool
+     */
+    public function beforeExecute(Request|RequestTopic $request): bool
+    {
+        return true;
+    }
+
+    /**
+     * Run after the main action for event or command
+     *
+     * @param  Request|RequestTopic $request received data
+     * @return void
+     */
+    public function afterExecute(Request|RequestTopic $request): void
+    {
+    }
 
     public function init(): void
     {
@@ -103,29 +134,6 @@ abstract class Processor
     public function process(AmqpMessage $message, AmqpConsumer $consumer): string
     {
         return self::ACK;
-    }
-
-    /**
-     * Run before the main action (execute)
-     * With returning false, message => reject
-     *
-     * @param mixed   $data  received data
-     *
-     * @return bool
-     */
-    public function beforeExecute(mixed $data): bool
-    {
-        return true;
-    }
-
-    /**
-     * Run after the main action for event or command
-     *
-     * @param  mixed $data received data
-     * @return void
-     */
-    public function afterExecute(mixed $data): void
-    {
     }
 
     /**

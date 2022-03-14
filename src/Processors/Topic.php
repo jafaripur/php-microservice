@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Araz\MicroService\Processors;
 
 use Araz\MicroService\Processor;
+use Araz\MicroService\Processors\RequestResponse\RequestTopic;
 use Araz\MicroService\Queue;
 
 /**
@@ -15,11 +16,10 @@ abstract class Topic extends Processor
     /**
      * Process received topic
      *
-     * @param  string $routingKey
-     * @param  mixed $body received data
+     * @param  RequestTopic $request received data
      * @return void
      */
-    abstract public function execute(string $routingKey, mixed $body): void;
+    abstract public function execute(RequestTopic $request): void;
 
     /**
      * Get routing keys for bind to topic
