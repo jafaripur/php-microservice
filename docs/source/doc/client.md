@@ -14,7 +14,7 @@ $data = ['id' => 123];
 $timeout = 3000; // 3 second timeout if a response not receive in this period, default is 10 second
 $priority = 0; // 0-5 priority, Higher is high priority, default is null
 
-$result = $queue->getSender()->command()
+$result = $queue->getClient()->command()
     ->setQueueName($queueName)
     ->setJobName($jobName)
     ->setData($data)
@@ -37,7 +37,7 @@ $asyncTimeout = 20000; // 20000 timeout for the whole command list, if all messa
 $commandTimeout = 2000; // 2000 for timeout per message, This timeout is autoremove message
 $priority = 0;
 
-$commands = $queue->getSender()->async($asyncTimeout)
+$commands = $queue->getClient()->async($asyncTimeout)
     ->command(
         queueName: $queueName,
         jobName: $jobName,
@@ -95,7 +95,7 @@ $delay = 30000; // 30s
 
 // This message will be delayed for 30000 millisecond (30s), message with delay and expiration is not possible.
 
-$messageId = $queue->getSender()->worker()
+$messageId = $queue->getClient()->worker()
     ->setQueueName($queueName)
     ->setJobName($jobName)
     ->setData($data)
@@ -118,9 +118,9 @@ $delay = 5000 // 5 second as millisecond
 
 // This message will emit to consumer with 5 second delay
 
-$messageId = $queue->getSender()->emit($topic, $data, $delay);
+$messageId = $queue->getClient()->emit($topic, $data, $delay);
 
-$messageId = $queue->getSender()->emit()
+$messageId = $queue->getClient()->emit()
     ->setTopicName($topic)
     ->setData($data)
     ->setDelay($delay)
@@ -141,7 +141,7 @@ $routingKey = 'user_topic_create';
 $data = ['id' => 123];
 $delay = 0 // millisecond, 0 disable delay
 
-$messageId = $queue->getSender()->emit()
+$messageId = $queue->getClient()->emit()
     ->setTopicName($topic)
     ->setRoutingKey($routingKey)
     ->setData($data)
