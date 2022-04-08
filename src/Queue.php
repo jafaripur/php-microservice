@@ -58,11 +58,6 @@ class Queue implements QueueInterface
      */
     private $client;
 
-    /**
-     * @var string $serializer
-     */
-    private $serializer;
-
     private array $serializers = [];
 
     private bool $lazyQueue = true;
@@ -80,7 +75,7 @@ class Queue implements QueueInterface
      * @param  bool $enableClient   Enable client
      * @param  bool $enableConsumer   Enable consumer
      * @param  string[] $processorConsumers array of processor consumer
-     * @param  string|null $serializer default serializer in sending the message with this implement SerializerInterface
+     * @param  string $serializer default serializer in sending the message with this implement SerializerInterface
      *
      */
     public function __construct(
@@ -91,9 +86,9 @@ class Queue implements QueueInterface
         bool $enableClient = true,
         bool $enableConsumer = true,
         array $processorConsumers = [],
-        ?string $serializer = null,
+        private string $serializer = JsonSerializer::class,
     ) {
-        $this->setDefaultSerializer($serializer ?? JsonSerializer::class);
+        $this->setDefaultSerializer($serializer);
         $this->initSerializer();
 
         $this->logger = $logger ?? new NullLogger();
@@ -386,7 +381,7 @@ class Queue implements QueueInterface
                 $this->serializers[$serializer] = new $serializer();
             }
 
-            return $this->serializers[$serializer];
+            return $this->serializers[$serializer] ?? null;
         }
 
         /**

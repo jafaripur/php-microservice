@@ -9,7 +9,7 @@ use Araz\MicroService\Interfaces\RequestTopicInterface;
 class RequestTopic extends Request implements RequestTopicInterface
 {
     public function __construct(
-        private string $messageId,
+        string $messageId,
         mixed $body,
         int $time,
         private mixed $routingKey,

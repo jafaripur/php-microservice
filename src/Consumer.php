@@ -242,6 +242,7 @@ final class Consumer
         }
 
         $executeResult = $processor->execute($request);
+
         $processor->afterExecute($request);
 
         /**

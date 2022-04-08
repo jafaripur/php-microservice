@@ -9,21 +9,13 @@ use Araz\MicroService\Queue;
 abstract class SenderBase
 {
     /**
-      *
-      * @var Queue $queue
-      */
-    protected Queue $queue;
-
-    private bool $passive;
-
-    /**
      *
      * @param  Queue  $queue
      */
-    public function __construct(Queue $queue, bool $passive)
-    {
-        $this->queue = $queue;
-        $this->passive = $passive;
+    public function __construct(
+        protected Queue $queue,
+        private bool $passive
+    ) {
     }
 
     abstract public function send(): mixed;
@@ -31,5 +23,10 @@ abstract class SenderBase
     public function getPassive(): bool
     {
         return $this->passive;
+    }
+
+    public function getQueue(): Queue
+    {
+        return $this->queue;
     }
 }

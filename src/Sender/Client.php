@@ -10,18 +10,10 @@ final class Client
 {
     /**
      *
-     * @var Queue $queue
-     */
-    private Queue $queue;
-
-    /**
-     *
      * @param  Queue  $queue
-     * @param  string $asyncSenderClass
      */
-    public function __construct(Queue $queue)
+    public function __construct(private Queue $queue)
     {
-        $this->queue = $queue;
     }
 
     /**

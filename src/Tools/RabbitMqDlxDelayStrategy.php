@@ -17,16 +17,13 @@ class RabbitMqDlxDelayStrategy extends RabbitMqDlxDelayStrategyMain
 {
     private const QUEUE_AUTO_DELETE_SECOND = 60000; // 60 second
 
-    private Queue $queue;
-
     /**
      * $queue oject
      *
      * @param  Queue $queue
      */
-    public function __construct(Queue $queue)
+    public function __construct(private Queue $queue)
     {
-        $this->queue = $queue;
     }
 
     /**

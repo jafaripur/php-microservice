@@ -28,14 +28,6 @@ final class AsyncSender
     public const COMMAND_MESSAGE_TIMEOUT = 10000;
     public const COMMAND_MESSAGE_EXPIRE_AFTER_SEND = 1000;
 
-    /**
-     *
-     * @var Queue $queue
-     */
-    private Queue $queue;
-
-    protected int $timeout;
-
     private AmqpQueue $queueResponse;
 
     private AmqpConsumer $consumer;
@@ -52,14 +44,13 @@ final class AsyncSender
      * @param  Queue       $queue
      * @param  integer $timeout timeout for all command related to this async as millisecond
      */
-    public function __construct(Queue $queue, int $timeout = self::COMMAND_ASYNC_MESSAGE_TIMEOUT)
-    {
+    public function __construct(
+        private Queue $queue,
+        private int $timeout = self::COMMAND_ASYNC_MESSAGE_TIMEOUT
+    ) {
         if ($timeout < 1) {
             throw new \LogicException('Timeout should be more than 0');
         }
-
-        $this->queue = $queue;
-        $this->timeout = $timeout;
 
         $this->queueResponse = $this->queue->createTemporaryQueue();
         $this->consumer = $this->queue->createConsumer($this->queueResponse);
