@@ -32,7 +32,7 @@ $queue = new \Araz\MicroService\Queue(
         Application\Queue\Consumer\ConsumerFirst::class,
         Application\Queue\Consumer\ConsumerSecond::class,
     ],
-    serializer: null
+    serializer: \Araz\MicroService\Serializers\JsonSerializer::class
 )
 
 ```
@@ -46,7 +46,7 @@ $queue = new \Araz\MicroService\Queue(
 - `enableClient`: Enable current queue object as a client.
 - `enableConsumer`: Enable current queue object as a server and able to listen on queues.
 - `processorConsumers`: Array of [`Consumer`](processor-consumer.md) class name, Each consumer class can contain several [`Processor`](processor.md) class and configuration for queue.
-- `serializer`: Default serializer in sending the message with this implement `Araz\MicroService\Interfaces\SerializerInterface`. Default is `Araz\MicroService\Serializers\JsonSerializer` if null provided in defining `Queue`.
+- `serializer`: Default serializer in sending the message with this implement `Araz\MicroService\Interfaces\SerializerInterface`. Default serializer is `Araz\MicroService\Serializers\JsonSerializer`.
 
 ```{note}
 Default connection used [ext-amqp](https://github.com/php-amqp/php-amqp), This manually change to use [Bunny](https://github.com/jakubkulhan/bunny).
