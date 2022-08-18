@@ -14,18 +14,16 @@ use Araz\MicroService\Queue;
 abstract class Emit extends Processor
 {
     /**
-     * Process received emit
+     * Process received emit.
      *
-     * @param  Request $request received data
-     * @return void
+     * @param Request $request received data
      */
     abstract public function execute(Request $request): void;
 
     /**
-     * Get topic name
+     * Get topic name.
      *
-     * @param  mixed $body received data
-     * @return string
+     * @param mixed $body received data
      */
     abstract public function getTopicName(): string;
 
@@ -35,6 +33,14 @@ abstract class Emit extends Processor
     final public static function getType(): string
     {
         return Queue::METHOD_JOB_EMIT;
+    }
+
+    /**
+     * Set queue is durable.
+     */
+    public function durableQueue(): bool
+    {
+        return true;
     }
 
     /**
@@ -49,16 +55,5 @@ abstract class Emit extends Processor
         if (!trim($this->getTopicName())) {
             throw new \LogicException(sprintf('Loading emits, Topic name is required: %s', get_called_class()));
         }
-    }
-
-    /**
-     * Set queue is durable
-     *
-     * @return bool
-     *
-     */
-    public function durableQueue(): bool
-    {
-        return true;
     }
 }

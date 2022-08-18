@@ -17,8 +17,11 @@ final class ConsumerCommand extends ProcessorConsumer
     public function getProcessors(): Generator
     {
         yield \Araz\MicroService\Tests\Consumer\Processor\Command\UserGetInfoCommand::class;
+
         yield \Araz\MicroService\Tests\Consumer\Processor\Command\UserGetInfoCommandReject::class;
+
         yield \Araz\MicroService\Tests\Consumer\Processor\Command\UserGetInfoCommandSerializer::class;
+
         yield \Araz\MicroService\Tests\Consumer\Processor\Command\UserGetInfoCommandEventsProcessor::class;
     }
 }

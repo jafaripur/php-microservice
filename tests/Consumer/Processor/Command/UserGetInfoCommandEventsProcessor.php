@@ -8,8 +8,8 @@ use Araz\MicroService\Processor;
 use Araz\MicroService\Processors\Command;
 use Araz\MicroService\Processors\RequestResponse\Request;
 use Araz\MicroService\Processors\RequestResponse\Response;
-//use Interop\Amqp\AmqpConsumer;
-//use Interop\Amqp\Impl\AmqpMessage;
+// use Interop\Amqp\AmqpConsumer;
+// use Interop\Amqp\Impl\AmqpMessage;
 use Interop\Queue\Consumer as AmqpConsumer;
 use Interop\Queue\Message as AmqpMessage;
 
@@ -57,12 +57,14 @@ final class UserGetInfoCommandEventsProcessor extends Command
     public function process(AmqpMessage $message, AmqpConsumer $consumer): string
     {
         $this->events['process'] = Processor::ACK;
+
         return Processor::ACK;
     }
 
     public function beforeExecute(Request $request): bool
     {
         $this->events['beforeExecute'] = $request->getBody();
+
         return true;
     }
 
@@ -84,6 +86,7 @@ final class UserGetInfoCommandEventsProcessor extends Command
             ->setQueueName('service_worker_result')
             ->setJobName('user_profile_info_event_processor')
             ->setData($this->events)
-            ->send();
+            ->send()
+        ;
     }
 }

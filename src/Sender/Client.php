@@ -8,19 +8,14 @@ use Araz\MicroService\Queue;
 
 final class Client
 {
-    /**
-     *
-     * @param  Queue  $queue
-     */
     public function __construct(private Queue $queue)
     {
     }
 
     /**
-     * Create async command and send several message at once
+     * Create async command and send several message at once.
      *
-     * @param  integer $timeout as millisecond
-     * @return AsyncSender
+     * @param int $timeout as millisecond
      */
     final public function async(int $timeout = AsyncSender::COMMAND_ASYNC_MESSAGE_TIMEOUT): AsyncSender
     {
@@ -28,9 +23,7 @@ final class Client
     }
 
     /**
-     * Create command for sending and waiting to get response back
-     *
-     * @return CommandSender
+     * Create command for sending and waiting to get response back.
      */
     public function command(bool $passive = true): CommandSender
     {
@@ -38,9 +31,7 @@ final class Client
     }
 
     /**
-     * Create emit for sending
-     *
-     * @return EmitSender
+     * Create emit for sending.
      */
     public function emit(bool $passive = true): EmitSender
     {
@@ -48,9 +39,7 @@ final class Client
     }
 
     /**
-     * Create topic for sending
-     *
-     * @return TopicSender
+     * Create topic for sending.
      */
     public function topic(bool $passive = true): TopicSender
     {
@@ -58,9 +47,7 @@ final class Client
     }
 
     /**
-     * Create worker for sending
-     *
-     * @return WorkerSender
+     * Create worker for sending.
      */
     public function worker(bool $passive = true): WorkerSender
     {

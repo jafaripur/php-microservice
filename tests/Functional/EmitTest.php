@@ -58,7 +58,8 @@ class EmitTest extends TestCase
         $id = $this->queue->getClient()->emit()
             ->setTopicName('user_logged_in')
             ->setData($data)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getConsumer()->consume(50);
 
@@ -83,7 +84,8 @@ class EmitTest extends TestCase
             ->setTopicName('user_logged_in')
             ->setData($data)
             ->setDelay(100)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getConsumer()->consume(80);
         $this->assertEquals(UserLoggedInEmitWorker::$receivedData, null);

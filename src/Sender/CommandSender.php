@@ -17,6 +17,7 @@ use Araz\MicroService\Processors\RequestResponse\Response;
 final class CommandSender extends SenderBase
 {
     public const COMMAND_MESSAGE_EXPIRE_AFTER_SEND = 1000;
+
     public const COMMAND_MESSAGE_TIMEOUT = 10000;
 
     private string $queueName = '';
@@ -30,49 +31,42 @@ final class CommandSender extends SenderBase
     private ?int $priority = null;
 
     /**
-     * Queue name
-     *
-     * @param  string $name
-     * @return self
+     * Queue name.
      */
     public function setQueueName(string $name): self
     {
         $new = clone $this;
         $new->queueName = $name;
+
         return $new;
     }
 
     /**
-     * Job name
-     *
-     * @param  string $name
-     * @return self
+     * Job name.
      */
     public function setJobName(string $name): self
     {
         $new = clone $this;
         $new->jobName = $name;
+
         return $new;
     }
 
     /**
-     * Set payload data
-     *
-     * @param  mixed $data
-     * @return self
+     * Set payload data.
      */
     public function setData(mixed $data): self
     {
         $new = clone $this;
         $new->data = $data;
+
         return $new;
     }
 
     /**
-     * Add timeout for command
+     * Add timeout for command.
      *
-     * @param  integer $timeout as millisecond
-     * @return self
+     * @param int $timeout as millisecond
      */
     public function setTimeout(int $timeout): self
     {
@@ -82,14 +76,14 @@ final class CommandSender extends SenderBase
 
         $new = clone $this;
         $new->timeout = $timeout;
+
         return $new;
     }
 
     /**
-     * Add priority to command
+     * Add priority to command.
      *
-     * @param  integer $priority between 0-5
-     * @return self
+     * @param int $priority between 0-5
      */
     public function setPriority(int $priority): self
     {
@@ -99,14 +93,12 @@ final class CommandSender extends SenderBase
 
         $new = clone $this;
         $new->priority = $priority;
+
         return $new;
     }
 
     /**
-     * Send command
-     *
-     *
-     * @return Response
+     * Send command.
      *
      * @throws CommandTimeoutException
      * @throws CommandRejectException
@@ -116,11 +108,11 @@ final class CommandSender extends SenderBase
     public function send(): Response
     {
         if (empty(trim($this->queueName))) {
-            throw new \LogicException("Queue name is required!");
+            throw new \LogicException('Queue name is required!');
         }
 
         if (empty(trim($this->jobName))) {
-            throw new \LogicException("Job name is required!");
+            throw new \LogicException('Job name is required!');
         }
 
         $queueResponse = $this->queue->createTemporaryQueue();
@@ -145,10 +137,11 @@ final class CommandSender extends SenderBase
         $this->queue->getContext()->createProducer()
             ->setPriority($this->priority ?: null)
             ->setTimeToLive($this->timeout + self::COMMAND_MESSAGE_EXPIRE_AFTER_SEND)
-            ->send($queue, $message);
+            ->send($queue, $message)
+        ;
 
         /**
-         * @var AmqpMessage|null $reply
+         * @var null|AmqpMessage $reply
          */
         $reply = $consumer->receive($this->timeout);
 
@@ -156,8 +149,9 @@ final class CommandSender extends SenderBase
             throw new CommandTimeoutException('Command timeout.');
         }
 
-        if (MessageProperty::getStatus($reply) == Processor::REJECT) {
+        if (Processor::REJECT == MessageProperty::getStatus($reply)) {
             $consumer->acknowledge($reply);
+
             throw new CommandRejectException('Command rejected.');
         }
 
@@ -167,6 +161,7 @@ final class CommandSender extends SenderBase
                 'sent' => $message->getProperties() + $message->getHeaders(),
                 'receive' => $reply->getProperties() + $reply->getHeaders(),
             ]);
+
             throw new CorrelationInvalidException('Invalid data received!');
         }
 
@@ -181,6 +176,7 @@ final class CommandSender extends SenderBase
                 'sent' => $message->getProperties() + $message->getHeaders(),
                 'receive' => $reply->getProperties() + $reply->getHeaders(),
             ]);
+
             throw new SerializerNotFoundException('Serialize not found in our system');
         }
 

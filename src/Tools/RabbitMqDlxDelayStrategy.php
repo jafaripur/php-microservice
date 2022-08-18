@@ -18,9 +18,7 @@ class RabbitMqDlxDelayStrategy extends RabbitMqDlxDelayStrategyMain
     private const QUEUE_AUTO_DELETE_SECOND = 60000; // 60 second
 
     /**
-     * $queue oject
-     *
-     * @param  Queue $queue
+     * $queue oject.
      */
     public function __construct(private Queue $queue)
     {
@@ -40,25 +38,21 @@ class RabbitMqDlxDelayStrategy extends RabbitMqDlxDelayStrategyMain
         if ($dest instanceof AmqpTopic) {
             $delayQueue = $this->queue->createQueue(uniqid('delayed.topic.', true));
             $delayQueue->addFlag(AmqpTopic::FLAG_DURABLE);
-            //$delayQueue->addFlag(AmqpQueue::FLAG_AUTODELETE);
+            // $delayQueue->addFlag(AmqpQueue::FLAG_AUTODELETE);
             $delayQueue->setArgument('x-message-ttl', $delay);
             $delayQueue->setArgument('x-expires', $delay + self::QUEUE_AUTO_DELETE_SECOND);
             $delayQueue->setArgument('x-dead-letter-exchange', $dest->getTopicName());
-            $delayQueue->setArgument('x-dead-letter-routing-key', (string) $delayMessage->getRoutingKey());
+            $delayQueue->setArgument('x-dead-letter-routing-key', (string)$delayMessage->getRoutingKey());
         } elseif ($dest instanceof AmqpQueue) {
             $delayQueue = $this->queue->createQueue(uniqid('delayed.queue.', true));
             $delayQueue->addFlag(AmqpTopic::FLAG_DURABLE);
-            //$delayQueue->addFlag(AmqpTopic::FLAG_AUTODELETE);
+            // $delayQueue->addFlag(AmqpTopic::FLAG_AUTODELETE);
             $delayQueue->setArgument('x-message-ttl', $delay);
             $delayQueue->setArgument('x-expires', $delay + self::QUEUE_AUTO_DELETE_SECOND);
             $delayQueue->setArgument('x-dead-letter-exchange', '');
             $delayQueue->setArgument('x-dead-letter-routing-key', $dest->getQueueName());
         } else {
-            throw new InvalidDestinationException(sprintf(
-                'The destination must be an instance of %s but got %s.',
-                AmqpTopic::class.'|'.AmqpQueue::class,
-                get_class($dest)
-            ));
+            throw new InvalidDestinationException(sprintf('The destination must be an instance of %s but got %s.', AmqpTopic::class . '|' . AmqpQueue::class, get_class($dest)));
         }
         $this->queue->declareQueue($delayQueue);
         $this->queue->createProducer()->send($delayQueue, $delayMessage);

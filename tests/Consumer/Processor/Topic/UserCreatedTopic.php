@@ -7,8 +7,8 @@ namespace Araz\MicroService\Tests\Consumer\Processor\Topic;
 use Araz\MicroService\Processor;
 use Araz\MicroService\Processors\RequestResponse\RequestTopic;
 use Araz\MicroService\Processors\Topic;
-//use Interop\Amqp\AmqpConsumer;
-//use Interop\Amqp\Impl\AmqpMessage;
+// use Interop\Amqp\AmqpConsumer;
+// use Interop\Amqp\Impl\AmqpMessage;
 
 use Interop\Queue\Consumer as AmqpConsumer;
 use Interop\Queue\Message as AmqpMessage;
@@ -59,12 +59,14 @@ final class UserCreatedTopic extends Topic
     {
         $this->events['id'] = $message->getMessageId();
         $this->events['process'] = Processor::ACK;
+
         return Processor::ACK;
     }
 
     public function beforeExecute($request): bool
     {
         $this->events['beforeExecute'] = $request->getBody();
+
         return true;
     }
 
@@ -86,6 +88,7 @@ final class UserCreatedTopic extends Topic
             ->setQueueName('user_changed_result')
             ->setJobName('user_topic_create_result')
             ->setData($this->events)
-            ->send();
+            ->send()
+        ;
     }
 }

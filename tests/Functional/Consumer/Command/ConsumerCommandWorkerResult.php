@@ -17,7 +17,9 @@ final class ConsumerCommandWorkerResult extends ProcessorConsumer
     public function getProcessors(): Generator
     {
         yield \Araz\MicroService\Tests\Functional\Processor\WorkerCommand\UserProfileInfoCommandProcessorEventsWorker::class;
+
         yield \Araz\MicroService\Tests\Functional\Processor\WorkerCommand\UserProfileInfoCommandProcessorConsumerEventsWorker::class;
+
         yield \Araz\MicroService\Tests\Functional\Processor\WorkerCommand\UserProfileInfoCommandProcessorConsumerRedeliveryEventsWorker::class;
     }
 }

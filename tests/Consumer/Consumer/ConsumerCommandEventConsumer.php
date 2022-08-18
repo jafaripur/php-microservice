@@ -7,8 +7,8 @@ namespace Araz\MicroService\Tests\Consumer\Consumer;
 use Araz\MicroService\Processor;
 use Araz\MicroService\ProcessorConsumer;
 use Generator;
-//use Interop\Amqp\AmqpConsumer;
-//use Interop\Amqp\Impl\AmqpMessage;
+// use Interop\Amqp\AmqpConsumer;
+// use Interop\Amqp\Impl\AmqpMessage;
 use Interop\Queue\Consumer as AmqpConsumer;
 use Interop\Queue\Message as AmqpMessage;
 
@@ -48,6 +48,7 @@ final class ConsumerCommandEventConsumer extends ProcessorConsumer
             ->setQueueName('service_worker_result')
             ->setJobName('user_profile_info_event_processor_consumer')
             ->setData($this->events)
-            ->send();
+            ->send()
+        ;
     }
 }

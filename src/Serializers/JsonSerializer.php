@@ -8,7 +8,7 @@ use Araz\MicroService\Interfaces\SerializerInterface;
 use Yiisoft\Json\Json;
 
 /**
- * Serialize and unserialize data with JSON
+ * Serialize and unserialize data with JSON.
  */
 final class JsonSerializer implements SerializerInterface
 {
@@ -25,9 +25,7 @@ final class JsonSerializer implements SerializerInterface
      */
     public function unserialize(mixed $data): mixed
     {
-        /**
-         * @var string $data
-         */
+        // @var string $data
         return Json::decode($data, true);
     }
 
@@ -41,8 +39,6 @@ final class JsonSerializer implements SerializerInterface
 
     /**
      * @inheritDoc
-     *
-     * @return string
      */
     public function getContentType(): string
     {

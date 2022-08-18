@@ -6,7 +6,6 @@ use Araz\MicroService\AmqpConnection;
 use Araz\MicroService\Processor;
 use Araz\MicroService\Queue;
 use Araz\MicroService\Tests\Functional\Processor\WorkerTopic\UserLoggedInTopicWorker;
-use Araz\MicroService\Tests\Mock\Processor\Topic\UserCreatedTopic;
 use PHPUnit\Framework\TestCase;
 
 class TopicTest extends TestCase
@@ -47,7 +46,8 @@ class TopicTest extends TestCase
         try {
             $this->queue->getClient()->topic()
                 ->setTopicName('test')
-                ->send();
+                ->send()
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Routing key name is required', $th->getMessage());
@@ -56,7 +56,8 @@ class TopicTest extends TestCase
         try {
             $this->queue->getClient()->topic()
                 ->setRoutingKey('test')
-                ->send();
+                ->send()
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Topic name is required', $th->getMessage());
@@ -78,7 +79,8 @@ class TopicTest extends TestCase
             ->setTopicName('user_changed')
             ->setRoutingKey('user_topic_create')
             ->setData($data)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getConsumer()->consume(50);
 
@@ -99,7 +101,8 @@ class TopicTest extends TestCase
             ->setTopicName('user_changed')
             ->setRoutingKey('user_topic_update')
             ->setData($data)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getConsumer()->consume(50);
 
@@ -126,7 +129,8 @@ class TopicTest extends TestCase
             ->setRoutingKey('user_topic_create')
             ->setData($data)
             ->setDelay(120)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getConsumer()->consume(50);
         $this->assertEquals(UserLoggedInTopicWorker::$receivedData, null);
@@ -149,7 +153,8 @@ class TopicTest extends TestCase
             ->setRoutingKey('user_topic_update')
             ->setData($data)
             ->setDelay(120)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getConsumer()->consume(50);
         $this->assertEquals(UserLoggedInTopicWorker::$receivedData, null);

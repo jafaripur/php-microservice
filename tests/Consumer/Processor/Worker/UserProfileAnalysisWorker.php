@@ -7,8 +7,8 @@ namespace Araz\MicroService\Tests\Consumer\Processor\Worker;
 use Araz\MicroService\Processor;
 use Araz\MicroService\Processors\RequestResponse\Request;
 use Araz\MicroService\Processors\Worker;
-//use Interop\Amqp\AmqpConsumer;
-//use Interop\Amqp\Impl\AmqpMessage;
+// use Interop\Amqp\AmqpConsumer;
+// use Interop\Amqp\Impl\AmqpMessage;
 
 use Interop\Queue\Consumer as AmqpConsumer;
 use Interop\Queue\Message as AmqpMessage;
@@ -49,12 +49,14 @@ final class UserProfileAnalysisWorker extends Worker
     {
         $this->events['id'] = $message->getMessageId();
         $this->events['process'] = Processor::ACK;
+
         return Processor::ACK;
     }
 
     public function beforeExecute(Request $request): bool
     {
         $this->events['beforeExecute'] = $request->getBody();
+
         return true;
     }
 
@@ -78,6 +80,7 @@ final class UserProfileAnalysisWorker extends Worker
             ->setData($this->events)
             ->setPriority(isset($this->events['data']['priority']) ? (int)$this->events['data']['priority'] : 0)
             ->setExpiration(isset($this->events['data']['expire']) ? (int)$this->events['data']['expire'] : 0)
-            ->send();
+            ->send()
+        ;
     }
 }

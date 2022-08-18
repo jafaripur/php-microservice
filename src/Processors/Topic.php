@@ -14,24 +14,19 @@ use Araz\MicroService\Queue;
 abstract class Topic extends Processor
 {
     /**
-     * Process received topic
+     * Process received topic.
      *
-     * @param  RequestTopic $request received data
-     * @return void
+     * @param RequestTopic $request received data
      */
     abstract public function execute(RequestTopic $request): void;
 
     /**
-     * Get routing keys for bind to topic
-     *
-     * @return array
+     * Get routing keys for bind to topic.
      */
     abstract public function getRoutingKeys(): array;
 
     /**
-     * Get topic name
-     *
-     * @return string
+     * Get topic name.
      */
     abstract public function getTopicName(): string;
 
@@ -41,6 +36,14 @@ abstract class Topic extends Processor
     final public static function getType(): string
     {
         return Queue::METHOD_JOB_TOPIC;
+    }
+
+    /**
+     * Set queue is durable.
+     */
+    public function durableQueue(): bool
+    {
+        return true;
     }
 
     /**
@@ -59,16 +62,5 @@ abstract class Topic extends Processor
         if (!count($this->getRoutingKeys())) {
             throw new \LogicException(sprintf('Loading topics, Routing key is required: %s', get_called_class()));
         }
-    }
-
-    /**
-     * Set queue is durable
-     *
-     * @return bool
-     *
-     */
-    public function durableQueue(): bool
-    {
-        return true;
     }
 }

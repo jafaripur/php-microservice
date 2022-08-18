@@ -7,10 +7,9 @@ namespace Araz\MicroService\Serializers;
 use Araz\MicroService\Interfaces\SerializerInterface;
 
 /**
- * Serialize and unserialize data with MessagePack
+ * Serialize and unserialize data with MessagePack.
  *
  * https://github.com/msgpack/msgpack-php
- *
  */
 final class MessagePackSerializer implements SerializerInterface
 {
@@ -27,9 +26,7 @@ final class MessagePackSerializer implements SerializerInterface
      */
     public function unserialize(mixed $data): mixed
     {
-        /**
-         * @var string $data
-         */
+        // @var string $data
         return msgpack_unpack($data);
     }
 
@@ -43,8 +40,6 @@ final class MessagePackSerializer implements SerializerInterface
 
     /**
      * @inheritDoc
-     *
-     * @return string
      */
     public function getContentType(): string
     {

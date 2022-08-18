@@ -40,17 +40,15 @@ class QueueTest extends TestCase
                 true,
                 true,
                 [
-                    //Consumers
+                    // Consumers
                 ]
             ),
-            //Extra param
+            // Extra param
         ];
     }
 
     /**
      * @dataProvider queueInitDataProvider
-     *
-     * @param Queue $queue
      */
     public function testQueueInitialize(Queue $queue)
     {
@@ -87,8 +85,6 @@ class QueueTest extends TestCase
 
     /**
      * @dataProvider queueInitDataProvider
-     *
-     * @param Queue $queue
      */
     public function testQueueSerializer(Queue $queue)
     {

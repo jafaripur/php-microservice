@@ -7,7 +7,7 @@ namespace Araz\MicroService\Serializers;
 use Araz\MicroService\Interfaces\SerializerInterface;
 
 /**
- * Serialize and unserialize data with PHP serialize
+ * Serialize and unserialize data with PHP serialize.
  */
 final class PhpSerializer implements SerializerInterface
 {
@@ -24,9 +24,7 @@ final class PhpSerializer implements SerializerInterface
      */
     public function unserialize(mixed $data): mixed
     {
-        /**
-         * @var string $data
-         */
+        // @var string $data
         return unserialize($data);
     }
 
@@ -40,8 +38,6 @@ final class PhpSerializer implements SerializerInterface
 
     /**
      * @inheritDoc
-     *
-     * @return string
      */
     public function getContentType(): string
     {

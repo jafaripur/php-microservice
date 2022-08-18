@@ -9,19 +9,24 @@ use Interop\Amqp\Impl\AmqpMessage;
 final class MessageProperty
 {
     private const QUEUE_MESSAGE_PROPERTY_TOPIC = 'araz_topic';
+
     private const QUEUE_MESSAGE_PROPERTY_QUEUE = 'araz_queue';
+
     private const QUEUE_MESSAGE_PROPERTY_JOB = 'araz_job';
+
     private const QUEUE_MESSAGE_PROPERTY_METHOD = 'araz_method';
+
     private const QUEUE_MESSAGE_PROPERTY_SERIALIZE = 'araz_serialize';
+
     private const QUEUE_MESSAGE_PROPERTY_STATUS = 'araz_ack_status';
+
     private const QUEUE_MESSAGE_PROPERTY_REDELIVER_KEY = 'araz_redelivered_count';
 
     /**
-     * Get property data
+     * Get property data.
      *
-     * @param  AmqpMessage $message
-     * @param  string      $key
-     * @param  mixed       $default
+     * @param mixed $default
+     *
      * @return mixed
      */
     public static function getProperty(AmqpMessage $message, string $key, ?string $default = null): ?string
@@ -29,16 +34,12 @@ final class MessageProperty
         // https://php-enqueue.github.io/transport/amqp/ payload in AMQP server is not same as https://php-enqueue.github.io/transport/amqp_bunny/
 
         $data = $message->getProperty($key, null) ?? $message->getProperty('application_headers', [])[$key] ?? null;
+
         return $data ?? $message->getHeader($key, $default);
     }
 
     /**
-     * Set property for message
-     *
-     * @param  AmqpMessage $message
-     * @param  string      $key
-     * @param  mixed       $value
-     * @return void
+     * Set property for message.
      */
     public static function setProperty(AmqpMessage $message, string $key, mixed $value): void
     {

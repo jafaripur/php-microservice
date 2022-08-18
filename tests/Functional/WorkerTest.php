@@ -43,7 +43,8 @@ class WorkerTest extends TestCase
                 ->setData(['id' => 123456])
                 ->setExpiration(500)
                 ->setDelay(3)
-                ->send();
+                ->send()
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Just one of $delay or $expiration can be set', $th->getMessage());
@@ -55,7 +56,8 @@ class WorkerTest extends TestCase
                 ->setJobName('user_profile_analysis')
                 ->setData(['id' => 123456])
                 ->setPriority(300)
-                ->send();
+                ->send()
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Priority accept between 0 and', $th->getMessage());
@@ -67,7 +69,8 @@ class WorkerTest extends TestCase
                 ->setJobName('user_profile_analysis')
                 ->setData(['id' => 123456])
                 ->setPriority(-1)
-                ->send();
+                ->send()
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Priority accept between 0 and', $th->getMessage());
@@ -79,7 +82,8 @@ class WorkerTest extends TestCase
                 ->setJobName('user_profile_analysis')
                 ->setData(['id' => 123456])
                 ->setDelay(-1)
-                ->send();
+                ->send()
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Delay can not less than 0', $th->getMessage());
@@ -94,7 +98,8 @@ class WorkerTest extends TestCase
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
             ->setData($data)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getConsumer()->consume(50);
 
@@ -116,35 +121,40 @@ class WorkerTest extends TestCase
             ->setJobName('user_profile_analysis')
             ->setData(['id' => 123456, 'priority' => 4])
             ->setPriority(4)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
             ->setData(['id' => 1234, 'priority' => 5])
             ->setPriority(5)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
             ->setData(['id' => 1235, 'priority' => 1])
             ->setPriority(1)
-            ->send();
+            ->send()
+        ;
 
         $id = $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
             ->setData(['id' => 123522, 'priority' => 0])
             ->setPriority(0)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getClient()->worker()
             ->setQueueName('service_worker')
             ->setJobName('user_profile_analysis')
             ->setData(['id' => 1236, 'priority' => 2])
             ->setPriority(2)
-            ->send();
+            ->send()
+        ;
 
         UserProfileAnalysisTestWorker::$receivedData = null;
 
@@ -172,7 +182,8 @@ class WorkerTest extends TestCase
             ->setJobName('user_profile_analysis')
             ->setData($data)
             ->setExpiration(2000)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getConsumer()->consume(20);
 
@@ -196,7 +207,8 @@ class WorkerTest extends TestCase
             ->setJobName('user_profile_analysis')
             ->setData($data)
             ->setExpiration(2000)
-            ->send();
+            ->send()
+        ;
 
         usleep(50 * 1000);
 
@@ -214,7 +226,8 @@ class WorkerTest extends TestCase
             ->setJobName('user_profile_analysis')
             ->setData(['id' => 123456])
             ->setDelay(120)
-            ->send();
+            ->send()
+        ;
 
         $this->queue->getConsumer()->consume(50);
         $this->assertEquals(UserProfileAnalysisTestWorker::$receivedData, null);

@@ -7,8 +7,8 @@ namespace Araz\MicroService\Tests\Consumer\Processor\Emit;
 use Araz\MicroService\Processor;
 use Araz\MicroService\Processors\Emit;
 use Araz\MicroService\Processors\RequestResponse\Request;
-//use Interop\Amqp\AmqpConsumer;
-//use Interop\Amqp\Impl\AmqpMessage;
+// use Interop\Amqp\AmqpConsumer;
+// use Interop\Amqp\Impl\AmqpMessage;
 
 use Interop\Queue\Consumer as AmqpConsumer;
 use Interop\Queue\Message as AmqpMessage;
@@ -54,12 +54,14 @@ final class UserLoggedInEmit extends Emit
     {
         $this->events['id'] = $message->getMessageId();
         $this->events['process'] = Processor::ACK;
+
         return Processor::ACK;
     }
 
     public function beforeExecute(Request $request): bool
     {
         $this->events['beforeExecute'] = $request->getBody();
+
         return true;
     }
 
@@ -81,6 +83,7 @@ final class UserLoggedInEmit extends Emit
             ->setQueueName('service_emit_result')
             ->setJobName('user_logged_in_result')
             ->setData($this->events)
-            ->send();
+            ->send()
+        ;
     }
 }

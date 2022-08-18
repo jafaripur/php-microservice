@@ -7,32 +7,22 @@ namespace Araz\MicroService\Interfaces;
 interface SerializerInterface
 {
     /**
-     * Serialize data for sending to queue
-     *
-     * @param  mixed $data
-     * @return mixed
+     * Serialize data for sending to queue.
      */
     public function serialize(mixed $data): mixed;
 
     /**
-     * Unserialize data for receiving from queue
-     *
-     * @param  mixed $data
-     * @return mixed
+     * Unserialize data for receiving from queue.
      */
     public function unserialize(mixed $data): mixed;
 
     /**
-     * Serialize name for identify
-     *
-     * @return string
+     * Serialize name for identify.
      */
     public function getName(): string;
 
     /**
-     * content-type of encoded result
-     *
-     * @return string
+     * content-type of encoded result.
      */
     public function getContentType(): string;
 }

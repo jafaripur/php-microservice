@@ -5,44 +5,39 @@ declare(strict_types=1);
 namespace Araz\MicroService;
 
 use Generator;
-
-//use Interop\Amqp\AmqpConsumer;
+// use Interop\Amqp\AmqpConsumer;
 use Interop\Queue\Consumer as AmqpConsumer;
 use Interop\Amqp\Impl\AmqpMessage;
 
 /**
- * If service container availale, dependencies will inject in creation of object __construct(...)
+ * If service container availale, dependencies will inject in creation of object __construct(...).
  */
 abstract class ProcessorConsumer
 {
     /**
-     * Maximum time of redeliver message again to queue
+     * Maximum time of redeliver message again to queue.
      */
     public const MAX_RETRY_REDELIVER = 5;
 
     /**
-     * Delay time as millisecond for redeliver message to queue
+     * Delay time as millisecond for redeliver message to queue.
      */
     public const MAX_RETRY_REDELIVER_DELAY = 0;
 
     private Queue $queue;
 
     /**
-     * Get list of processors classes
+     * Get list of processors classes.
      */
     abstract public function getProcessors(): Generator;
 
     /**
      * Get consumer identify name, should be unique in available ProcessorConsumers.
-     *
-     * @return string
      */
     abstract public function getConsumerIdentify(): string;
 
     /**
-     * Set current running queue object
-     *
-     * @return void
+     * Set current running queue object.
      */
     public function setQueue(Queue $queue): void
     {
@@ -50,9 +45,7 @@ abstract class ProcessorConsumer
     }
 
     /**
-     * Get current running queue object
-     *
-     * @return Queue
+     * Get current running queue object.
      */
     public function getQueue(): Queue
     {
@@ -60,57 +53,40 @@ abstract class ProcessorConsumer
     }
 
     /**
-     * Run when consumer get receive new message
-     *
-     * @param  AmqpMessage  $message
-     * @param  AmqpConsumer $consumer
-     * @return void
+     * Run when consumer get receive new message.
      */
     public function messageReceived(AmqpMessage $message, AmqpConsumer $consumer): void
     {
     }
 
     /**
-     * Run when a message is redelivered by consumer
-     *
-     * @param  AmqpMessage  $message
-     * @param  AmqpConsumer $consumer
-     * @return void
+     * Run when a message is redelivered by consumer.
      */
     public function messageRedelivered(AmqpMessage $message, AmqpConsumer $consumer): void
     {
     }
 
     /**
-     * Run after the message acknowledge
+     * Run after the message acknowledge.
      *
-     * @param  Processor    $processor
-     * @param  string       $status   reject, ack, requeue
-     * @param  AmqpMessage  $message
-     * @param  AmqpConsumer $consumer
-     * @return void
+     * @param string $status reject, ack, requeue
      */
     public function afterMessageAcknowledge(Processor $processor, string $status, AmqpMessage $message, AmqpConsumer $consumer): void
     {
     }
 
     /**
-     * Run when maximum limit reached in the message redelivery
-     *
-     * @param  AmqpMessage  $message
-     * @param  AmqpConsumer $consumer
-     * @return void
+     * Run when maximum limit reached in the message redelivery.
      */
     public function messageRedeliveredMaximumReached(AmqpMessage $message, AmqpConsumer $consumer): void
     {
     }
 
     /**
-     * Trigger when processor finished
+     * Trigger when processor finished.
      *
-     * @param  string $status ack, reject, requeue, null on redelivery
-     * @param  Processor $processor Handled processor
-     * @return void
+     * @param string    $status    ack, reject, requeue, null on redelivery
+     * @param Processor $processor Handled processor
      */
     public function processorFinished(?string $status, Processor $processor): void
     {
@@ -119,7 +95,7 @@ abstract class ProcessorConsumer
     /**
      * Enable single active consumer.
      * Just for workers and commands method.
-     * Emit and Topic not support this one and by default they are already single active consumer
+     * Emit and Topic not support this one and by default they are already single active consumer.
      *
      * @return false
      */
@@ -129,7 +105,7 @@ abstract class ProcessorConsumer
     }
 
     /**
-     * Get maximum number of try for redeliver a message to queue
+     * Get maximum number of try for redeliver a message to queue.
      *
      * @psalm-return 5
      */
@@ -139,7 +115,7 @@ abstract class ProcessorConsumer
     }
 
     /**
-     * If a message require for redelivery, delay time to push again message to queue, 0 = no delay, as millisecond
+     * If a message require for redelivery, delay time to push again message to queue, 0 = no delay, as millisecond.
      *
      * @return int as millisecond
      */
@@ -149,9 +125,7 @@ abstract class ProcessorConsumer
     }
 
     /**
-     * Get prefetch count
-     *
-     * @return int
+     * Get prefetch count.
      *
      * @psalm-return 1
      */

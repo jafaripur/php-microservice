@@ -22,49 +22,42 @@ final class WorkerSender extends SenderBase
     private ?int $delay = null;
 
     /**
-     * Queue name
-     *
-     * @param  string $name
-     * @return self
+     * Queue name.
      */
     public function setQueueName(string $name): self
     {
         $new = clone $this;
         $new->queueName = $name;
+
         return $new;
     }
 
     /**
-     * Job name
-     *
-     * @param  string $name
-     * @return self
+     * Job name.
      */
     public function setJobName(string $name): self
     {
         $new = clone $this;
         $new->jobName = $name;
+
         return $new;
     }
 
     /**
-     * Set payload data
-     *
-     * @param  mixed $data
-     * @return self
+     * Set payload data.
      */
     public function setData(mixed $data): self
     {
         $new = clone $this;
         $new->data = $data;
+
         return $new;
     }
 
     /**
-     * Add delay
+     * Add delay.
      *
-     * @param  integer $delay as millisecond
-     * @return self
+     * @param int $delay as millisecond
      */
     public function setDelay(int $delay): self
     {
@@ -74,14 +67,14 @@ final class WorkerSender extends SenderBase
 
         $new = clone $this;
         $new->delay = $delay;
+
         return $new;
     }
 
     /**
-     * Add expiration
+     * Add expiration.
      *
-     * @param  integer $expiration as millisecond
-     * @return self
+     * @param int $expiration as millisecond
      */
     public function setExpiration(int $expiration): self
     {
@@ -91,14 +84,14 @@ final class WorkerSender extends SenderBase
 
         $new = clone $this;
         $new->expiration = $expiration;
+
         return $new;
     }
 
     /**
-     * Add priority to worker
+     * Add priority to worker.
      *
-     * @param  integer $priority between 0-5
-     * @return self
+     * @param int $priority between 0-5
      */
     public function setPriority(int $priority): self
     {
@@ -108,22 +101,21 @@ final class WorkerSender extends SenderBase
 
         $new = clone $this;
         $new->priority = $priority;
+
         return $new;
     }
 
     /**
-     * Send to Worker
-     *
-     * @return string|null
+     * Send to Worker.
      */
     public function send(): ?string
     {
         if (empty(trim($this->queueName))) {
-            throw new \LogicException("Queue name is required!");
+            throw new \LogicException('Queue name is required!');
         }
 
         if (empty(trim($this->jobName))) {
-            throw new \LogicException("Job name is required!");
+            throw new \LogicException('Job name is required!');
         }
 
         if ($this->delay && $this->expiration) {
@@ -154,7 +146,8 @@ final class WorkerSender extends SenderBase
             ->setPriority($this->priority ?: null)
             ->setTimeToLive($this->expiration ?: null)
             ->setDeliveryDelay($this->delay ?: null)
-            ->send($queue, $message);
+            ->send($queue, $message)
+        ;
 
         return $message->getMessageId();
     }

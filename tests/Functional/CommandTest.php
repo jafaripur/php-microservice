@@ -54,7 +54,8 @@ class CommandTest extends TestCase
         try {
             $this->queue->getClient()->command()
                 ->setJobName('test')
-                ->send();
+                ->send()
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Queue name is required', $th->getMessage());
@@ -63,7 +64,8 @@ class CommandTest extends TestCase
         try {
             $this->queue->getClient()->command()
                 ->setQueueName('test')
-                ->send();
+                ->send()
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Job name is required', $th->getMessage());
@@ -71,7 +73,8 @@ class CommandTest extends TestCase
 
         try {
             $this->queue->getClient()->command()
-                ->setTimeout(-1);
+                ->setTimeout(-1)
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Timeout should be more than', $th->getMessage());
@@ -79,7 +82,8 @@ class CommandTest extends TestCase
 
         try {
             $this->queue->getClient()->command()
-                ->setPriority(200);
+                ->setPriority(200)
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(\LogicException::class, $th);
             $this->assertStringContainsString('Priority accept between 0', $th->getMessage());
@@ -94,7 +98,8 @@ class CommandTest extends TestCase
                 ->setJobName('profile_info_fake')
                 ->setData(['id' => 123])
                 ->setTimeout(20)
-                ->send();
+                ->send()
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(CommandTimeoutException::class, $th);
         }
@@ -108,7 +113,8 @@ class CommandTest extends TestCase
             ->setJobName('profile_info')
             ->setTimeout(2000)
             ->setPriority(0)
-            ->send();
+            ->send()
+        ;
 
         $this->assertEquals($result->getBody(), ['id' => 123]);
     }
@@ -122,10 +128,11 @@ class CommandTest extends TestCase
 
         $commands = $this->queue->getClient()->async(4000)
             ->command('service_command', 'profile_info', $data['command-1'], 'command-1', 2000, 0)
-            ->command('service_command', 'profile_info', $data['command-2'], 'command-2', 2000, 1);
+            ->command('service_command', 'profile_info', $data['command-2'], 'command-2', 2000, 1)
+        ;
 
         /**
-         * @var ResponseAsync  $response
+         * @var ResponseAsync $response
          */
         foreach ($commands->receive() as $correlationId => $response) {
             $this->assertEquals($response->getBody(), $data[$correlationId]);
@@ -142,7 +149,8 @@ class CommandTest extends TestCase
                 ->setData(['id' => 123])
                 ->setTimeout(2000)
                 ->setPriority(5)
-                ->send();
+                ->send()
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(CommandRejectException::class, $th);
         }
@@ -157,10 +165,11 @@ class CommandTest extends TestCase
 
         $commands = $this->queue->getClient()->async(4000)
             ->command('service_command', 'profile_info_reject', $data['command-1'], 'command-1', 2000)
-            ->command('service_command', 'profile_info_reject', $data['command-2'], 'command-2', 2000);
+            ->command('service_command', 'profile_info_reject', $data['command-2'], 'command-2', 2000)
+        ;
 
         /**
-         * @var ResponseAsync  $response
+         * @var ResponseAsync $response
          */
         foreach ($commands->receive() as $correlationId => $response) {
             $this->assertInstanceOf(ResponseAsync::class, $response);
@@ -180,7 +189,8 @@ class CommandTest extends TestCase
                 ->setData(['id' => 123])
                 ->setTimeout(2000)
                 ->setPriority(5)
-                ->send();
+                ->send()
+            ;
         } catch (\Throwable $th) {
             $this->assertInstanceOf(SerializerNotFoundException::class, $th);
         }
@@ -196,7 +206,8 @@ class CommandTest extends TestCase
             ->setData(['id' => 123])
             ->setTimeout(2000)
             ->setPriority(5)
-            ->send();
+            ->send()
+        ;
 
         $this->assertInstanceOf(Response::class, $response);
 
@@ -222,7 +233,8 @@ class CommandTest extends TestCase
             ->setData(['id' => 123])
             ->setTimeout(2000)
             ->setPriority(5)
-            ->send();
+            ->send()
+        ;
 
         $this->assertInstanceOf(Response::class, $response);
 
@@ -245,7 +257,8 @@ class CommandTest extends TestCase
             ->setData(['id' => 123])
             ->setTimeout(2000)
             ->setPriority(5)
-            ->send();
+            ->send()
+        ;
 
         $this->assertInstanceOf(Response::class, $response);
 

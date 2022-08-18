@@ -11,23 +11,20 @@ use Interop\Queue\Context;
 class AmqpConnection
 {
     /**
-     *
-     * @var AmqpContext|Context $context
+     * @var AmqpContext|Context
      */
-    private $context;
+    private Context $context;
 
     /**
-     *
      * check for more: https://php-enqueue.github.io/transport
      * $transport => [
      *    'dsn' => 'amqps://guest:guest@localhost:5672/%2f',
      *    'ssl_cacert' => '/a/dir/cacert.pem',
      *    'ssl_cert' => '/a/dir/cert.pem',
      *    'ssl_key' => '/a/dir/key.pem',
-     * ]
+     * ].
      *
-     * @param  array       $transport
-     * @param  string $amqpLibrary AmqpConnectionFactory|AmqpBunnyConnectionFactory
+     * @param string $amqpLibrary AmqpConnectionFactory|AmqpBunnyConnectionFactory
      */
     public function __construct(
         array $transport,
@@ -37,7 +34,7 @@ class AmqpConnection
             throw new \LogicException('The $amqpLibrary must be implement of \Interop\Amqp\AmqpConnectionFactory');
         }
 
-        if ($amqpLibrary == AmqpConnectionFactory::class && !extension_loaded('amqp')) {
+        if (AmqpConnectionFactory::class == $amqpLibrary && !extension_loaded('amqp')) {
             throw new \LogicException('PHP Amqp extension not installed!');
         }
 

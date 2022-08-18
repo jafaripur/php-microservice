@@ -31,14 +31,12 @@ class ConsumerTest extends TestCase
                     \Araz\MicroService\Tests\Consumer\Consumer\ConsumerWorker::class,
                 ]
             ),
-            //Extra param
+            // Extra param
         ];
     }
 
     /**
      * @dataProvider queueInitDataProvider
-     *
-     * @param Queue $queue
      */
     public function testConsumer(Queue $queue)
     {

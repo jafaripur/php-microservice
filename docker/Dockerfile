@@ -1,4 +1,4 @@
-FROM php:8.0.16-cli-alpine
+FROM php:8.1-cli-alpine
 
 LABEL description="Testing Dockerfile for build in https://github.com/jafaripur/php-microservice"
 LABEL org.opencontainers.image.authors="mjafaripur@yahoo.com"
@@ -9,10 +9,10 @@ RUN apk update && apk upgrade && echo "UTC" > /etc/timezone \
 	&& docker-php-source extract \
 	&& docker-php-ext-install bcmath pcntl \
 	&& pecl install amqp \
-	&& docker-php-ext-enable amqp \
+	&& docker-php-ext-enable igbinary msgpack amqp \
 	&& docker-php-source delete \
 	&& apk del bash autoconf gcc binutils binutils-dev g++ libtool make ${PHPIZE_DEPS} \
-	&& mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini" \
+	&& mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
 	&& rm -rf /var/tmp/* \
 	&& rm -rf /tmp/* \
 	&& rm -rf /var/cache/apk/* \

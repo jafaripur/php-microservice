@@ -12,20 +12,20 @@ use Araz\MicroService\MessageProperty;
 use Araz\MicroService\Processor;
 use Araz\MicroService\Processors\RequestResponse\ResponseAsync;
 use Araz\MicroService\Queue;
-
 use Interop\Amqp\Impl\AmqpMessage;
-
-//use Interop\Amqp\Impl\AmqpQueue;
+// use Interop\Amqp\Impl\AmqpQueue;
 use Interop\Amqp\AmqpQueue as AmqpQueue;
 use Generator;
-//use Interop\Amqp\AmqpConsumer;
+// use Interop\Amqp\AmqpConsumer;
 use Interop\Queue\Consumer as AmqpConsumer;
 use Interop\Queue\Message;
 
 final class AsyncSender
 {
     public const COMMAND_ASYNC_MESSAGE_TIMEOUT = 10000;
+
     public const COMMAND_MESSAGE_TIMEOUT = 10000;
+
     public const COMMAND_MESSAGE_EXPIRE_AFTER_SEND = 1000;
 
     private AmqpQueue $queueResponse;
@@ -33,16 +33,14 @@ final class AsyncSender
     private AmqpConsumer $consumer;
 
     /**
-     *
      * @var array<string, AmqpMessage>
      */
     private array $messages = [];
 
     /**
-     * Undocumented function
+     * Undocumented function.
      *
-     * @param  Queue       $queue
-     * @param  integer $timeout timeout for all command related to this async as millisecond
+     * @param int $timeout timeout for all command related to this async as millisecond
      */
     public function __construct(
         private Queue $queue,
@@ -57,16 +55,11 @@ final class AsyncSender
     }
 
     /**
-     * Send command
+     * Send command.
      *
-     * @param  string       $queueName
-     * @param  string       $jobName
-     * @param  mixed        $data
-     * @param  string        $correlationId  identify this command to detect response by this identify
-     * @param  integer $timeout    as millisecond
-     * @param  integer|null $priority 0-5
-     * @return self
-     *
+     * @param string   $correlationId identify this command to detect response by this identify
+     * @param int      $timeout       as millisecond
+     * @param null|int $priority      0-5
      */
     public function command(string $queueName, string $jobName, mixed $data, string $correlationId, int $timeout = self::COMMAND_MESSAGE_TIMEOUT, ?int $priority = null): self
     {
@@ -105,7 +98,8 @@ final class AsyncSender
         $this->queue->getContext()->createProducer()
             ->setPriority($priority ?: null)
             ->setTimeToLive($timeout + self::COMMAND_MESSAGE_EXPIRE_AFTER_SEND)
-            ->send($queue, $message);
+            ->send($queue, $message)
+        ;
 
         $this->messages[$correlationId] = $message;
 
@@ -113,19 +107,19 @@ final class AsyncSender
     }
 
     /**
-     * Start receiving command responses
-     *
-     * @return Generator<string, ResponseAsync, 0|positive-int>
+     * Start receiving command responses.
      *
      * @throws CommandTimeoutException
      * @throws CommandRejectException
      * @throws CorrelationInvalidException
      * @throws SerializerNotFoundException
      *
+     * @return Generator<string, ResponseAsync, 0|positive-int>
      */
     public function receive(): Generator
     {
         $listen = $this->listen();
+
         /**
          * @var AmqpMessage $reply
          */
@@ -135,22 +129,25 @@ final class AsyncSender
              */
             $correlationId = $reply->getCorrelationId();
 
-            if (MessageProperty::getStatus($reply) == Processor::REJECT) {
+            if (Processor::REJECT == MessageProperty::getStatus($reply)) {
                 $this->consumer->acknowledge($reply);
+
                 yield $correlationId => new ResponseAsync(
                     Processor::REJECT,
                     null
                 );
+
                 continue;
             }
 
             if (!isset($this->messages[$correlationId])) {
                 $this->consumer->reject($reply, false);
+
                 throw new CorrelationInvalidException('Invalid data received!');
             }
 
             /**
-             * @var string|null $serialize
+             * @var null|string $serialize
              */
             $serialize = MessageProperty::getSerializer($this->messages[$correlationId]);
 
@@ -163,6 +160,7 @@ final class AsyncSender
                     'sent' => $this->messages[$correlationId]->getProperties() + $this->messages[$correlationId]->getHeaders(),
                     'receive' => $reply->getProperties() + $reply->getHeaders(),
                 ]);
+
                 throw new SerializerNotFoundException('Serialize not found in our system');
             }
 
@@ -199,18 +197,19 @@ final class AsyncSender
                     $this->queue->getLogger()->error('Received async command correlation is invalid.', [
                         'received' => $message->getProperties() + $message->getHeaders(),
                     ]);
+
                     throw new CorrelationInvalidException('Invalid data received!');
                 }
 
                 yield $message;
-                $count++;
+                ++$count;
             }
 
             if ($count == $sentMessageCount) {
                 break;
             }
 
-            usleep(20000); //20ms
+            usleep(20000); // 20ms
         }
 
         return $count;

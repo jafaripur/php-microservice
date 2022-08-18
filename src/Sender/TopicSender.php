@@ -18,51 +18,43 @@ final class TopicSender extends SenderBase
 
     private ?int $delay = null;
 
-
     /**
-     * Topic name
-     *
-     * @param  string $name
-     * @return self
+     * Topic name.
      */
     public function setTopicName(string $name): self
     {
         $new = clone $this;
         $new->topicName = $name;
+
         return $new;
     }
 
     /**
-     * Routing key name
-     *
-     * @param  string $name
-     * @return self
+     * Routing key name.
      */
     public function setRoutingKey(string $name): self
     {
         $new = clone $this;
         $new->routingKey = $name;
+
         return $new;
     }
 
     /**
-     * Set payload data
-     *
-     * @param  mixed $data
-     * @return self
+     * Set payload data.
      */
     public function setData(mixed $data): self
     {
         $new = clone $this;
         $new->data = $data;
+
         return $new;
     }
 
     /**
-     * Add delay
+     * Add delay.
      *
-     * @param  integer $delay as millisecond
-     * @return self
+     * @param int $delay as millisecond
      */
     public function setDelay(int $delay): self
     {
@@ -72,22 +64,23 @@ final class TopicSender extends SenderBase
 
         $new = clone $this;
         $new->delay = $delay;
+
         return $new;
     }
 
     /**
-     * Emit message to all consumer which subscribe to specific topic name and routing keys
+     * Emit message to all consumer which subscribe to specific topic name and routing keys.
      *
-     * @return string|null         message id
+     * @return null|string message id
      */
     public function send(): ?string
     {
         if (empty(trim($this->topicName))) {
-            throw new \LogicException("Topic name is required!");
+            throw new \LogicException('Topic name is required!');
         }
 
         if (empty(trim($this->routingKey))) {
-            throw new \LogicException("Routing key name is required!");
+            throw new \LogicException('Routing key name is required!');
         }
 
         $topic = $this->queue->createTopic($this->topicName);
@@ -113,7 +106,8 @@ final class TopicSender extends SenderBase
 
         $this->queue->createProducer()
             ->setDeliveryDelay($this->delay ?: null)
-            ->send($topic, $message);
+            ->send($topic, $message)
+        ;
 
         return $message->getMessageId();
     }

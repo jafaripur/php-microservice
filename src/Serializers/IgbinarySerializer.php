@@ -7,7 +7,7 @@ namespace Araz\MicroService\Serializers;
 use Araz\MicroService\Interfaces\SerializerInterface;
 
 /**
- * Serialize and unserialize data with Igbinary
+ * Serialize and unserialize data with Igbinary.
  */
 final class IgbinarySerializer implements SerializerInterface
 {
@@ -24,9 +24,7 @@ final class IgbinarySerializer implements SerializerInterface
      */
     public function unserialize(mixed $data): mixed
     {
-        /**
-         * @var string $data
-         */
+        // @var string $data
         return igbinary_unserialize($data);
     }
 
@@ -40,8 +38,6 @@ final class IgbinarySerializer implements SerializerInterface
 
     /**
      * @inheritDoc
-     *
-     * @return string
      */
     public function getContentType(): string
     {

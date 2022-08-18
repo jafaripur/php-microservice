@@ -18,21 +18,17 @@ use Enqueue\AmqpBunny\AmqpContext as AmqpBunnyAmqpContext;
 use Enqueue\AmqpExt\AmqpContext as AmqpExtAmqpContext;
 use Enqueue\AmqpTools\DelayStrategy;
 use Interop\Amqp\AmqpContext;
-//use Interop\Amqp\AmqpConsumer;
+// use Interop\Amqp\AmqpConsumer;
 use Interop\Queue\Consumer as AmqpConsumer;
-
 use Interop\Amqp\AmqpDestination;
-//use Interop\Amqp\AmqpProducer;
+// use Interop\Amqp\AmqpProducer;
 use Interop\Queue\Producer as AmqpProducer;
 use Interop\Amqp\Impl\AmqpBind;
-//use Interop\Amqp\Impl\AmqpQueue;
+// use Interop\Amqp\Impl\AmqpQueue;
 use Interop\Amqp\AmqpQueue as AmqpQueue;
-
 use Interop\Amqp\Impl\AmqpMessage;
-
-//use Interop\Amqp\Impl\AmqpTopic;
+// use Interop\Amqp\Impl\AmqpTopic;
 use Interop\Amqp\AmqpTopic as AmqpTopic;
-
 use Interop\Queue\Context;
 use Interop\Queue\SubscriptionConsumer;
 use Psr\Container\ContainerInterface;
@@ -40,21 +36,21 @@ use Psr\Container\ContainerInterface;
 class Queue implements QueueInterface
 {
     /**
-     * @var LoggerInterface $logger
+     * @var LoggerInterface
      */
     private $logger;
 
     /**
-     * Server to listen to grab messages
+     * Server to listen to grab messages.
      *
-     * @var Consumer|null $consumer
+     * @var null|Consumer
      */
     private $consumer;
 
     /**
-     * Client to send message
+     * Client to send message.
      *
-     * @var Client|null $client
+     * @var null|Client
      */
     private $client;
 
@@ -62,21 +58,16 @@ class Queue implements QueueInterface
 
     private bool $lazyQueue = true;
 
+    private string $serializer;
+
     /**
+     * Processor namespace loading recursively from start to end.
      *
-     *
-     * Processor namespace loading recursively from start to end
-     *
-     *
-     * @param  string $appName
-     * @param  AmqpConnection $connection
-     * @param  LoggerInterface|null $logger
-     * @param  ContainerInterface|null $container Service container for resolve processor dependency injection
-     * @param  bool $enableClient   Enable client
-     * @param  bool $enableConsumer   Enable consumer
-     * @param  string[] $processorConsumers array of processor consumer
-     * @param  string $serializer default serializer in sending the message with this implement SerializerInterface
-     *
+     * @param null|ContainerInterface $container          Service container for resolve processor dependency injection
+     * @param bool                    $enableClient       Enable client
+     * @param bool                    $enableConsumer     Enable consumer
+     * @param string[]                $processorConsumers array of processor consumer
+     * @param string                  $serializer         default serializer in sending the message with this implement SerializerInterface
      */
     public function __construct(
         private string $appName,
@@ -86,7 +77,7 @@ class Queue implements QueueInterface
         bool $enableClient = true,
         bool $enableConsumer = true,
         array $processorConsumers = [],
-        private string $serializer = JsonSerializer::class,
+        string $serializer = JsonSerializer::class,
     ) {
         $this->setDefaultSerializer($serializer);
         $this->initSerializer();
@@ -103,25 +94,16 @@ class Queue implements QueueInterface
         }
     }
 
-
     public function getAppName(): string
     {
         return $this->appName;
     }
 
-    /**
-     *
-     * @return AmqpContext|Context
-     */
     public function getContext(): AmqpContext|Context
     {
         return $this->getConnection()->getContext();
     }
 
-    /**
-     *
-     * @return AmqpConnection
-     */
     public function getConnection(): AmqpConnection
     {
         return $this->connection;
@@ -168,9 +150,8 @@ class Queue implements QueueInterface
      */
     public function createConsumer(AmqpQueue $queue): AmqpConsumer
     {
-
         /**
-         * @var AmqpExtAmqpContext|AmqpBunnyAmqpContext $context
+         * @var AmqpBunnyAmqpContext|AmqpExtAmqpContext $context
          */
         $context = $this->getContext();
 
@@ -198,9 +179,8 @@ class Queue implements QueueInterface
      */
     public function setQos(int $prefetchSize, int $prefetchCount, bool $global = false): void
     {
-
         /**
-         * @var AmqpExtAmqpContext|AmqpBunnyAmqpContext $context
+         * @var AmqpBunnyAmqpContext|AmqpExtAmqpContext $context
          */
         $context = $this->getContext();
 
@@ -241,9 +221,8 @@ class Queue implements QueueInterface
      */
     public function createTemporaryQueue(): AmqpQueue
     {
-
         /**
-         * @var AmqpExtAmqpContext|AmqpBunnyAmqpContext $context
+         * @var AmqpBunnyAmqpContext|AmqpExtAmqpContext $context
          */
         $context = $this->getContext();
 
@@ -255,9 +234,8 @@ class Queue implements QueueInterface
      */
     public function declareQueue(AmqpQueue $queue): int
     {
-
         /**
-         * @var AmqpExtAmqpContext|AmqpBunnyAmqpContext $context
+         * @var AmqpBunnyAmqpContext|AmqpExtAmqpContext $context
          */
         $context = $this->getContext();
 
@@ -269,9 +247,8 @@ class Queue implements QueueInterface
      */
     public function createTopic(string $topic): AmqpTopic
     {
-
         /**
-         * @var AmqpExtAmqpContext|AmqpBunnyAmqpContext $context
+         * @var AmqpBunnyAmqpContext|AmqpExtAmqpContext $context
          */
         $context = $this->getContext();
 
@@ -284,7 +261,7 @@ class Queue implements QueueInterface
     public function declareTopic(AmqpTopic $topic): void
     {
         /**
-         * @var AmqpExtAmqpContext|AmqpBunnyAmqpContext $context
+         * @var AmqpBunnyAmqpContext|AmqpExtAmqpContext $context
          */
         $context = $this->getContext();
 
@@ -296,9 +273,8 @@ class Queue implements QueueInterface
      */
     public function bind(AmqpDestination $target, AmqpDestination $source, string $routingKey = null, int $flags = AmqpBind::FLAG_NOPARAM, array $arguments = []): void
     {
-
         /**
-         * @var AmqpExtAmqpContext|AmqpBunnyAmqpContext $context
+         * @var AmqpBunnyAmqpContext|AmqpExtAmqpContext $context
          */
         $context = $this->getContext();
 
@@ -310,9 +286,8 @@ class Queue implements QueueInterface
      */
     public function setDelayStrategy(?DelayStrategy $strategy): void
     {
-
         /**
-         * @var AmqpExtAmqpContext|AmqpBunnyAmqpContext $context
+         * @var AmqpBunnyAmqpContext|AmqpExtAmqpContext $context
          */
         $context = $this->getContext();
 
@@ -329,7 +304,6 @@ class Queue implements QueueInterface
      */
     public function createMessage(mixed $data, bool $persistent = true): AmqpMessage
     {
-
         /**
          * @var AmqpMessage $message
          */
@@ -369,12 +343,12 @@ class Queue implements QueueInterface
             }
 
             if (!isset($this->serializers[$serializer])) {
-                //throw new SerializerNotFoundException($serializer);
+                // throw new SerializerNotFoundException($serializer);
                 return null;
             }
 
             if (is_bool($this->serializers[$serializer])) {
-                /**
+                /*
                  * @var string $serializer
                  * @psalm-param class-string $serializer
                  */
@@ -398,7 +372,7 @@ class Queue implements QueueInterface
             }
         }
 
-        //throw new SerializerNotFoundException($serializer);
+        // throw new SerializerNotFoundException($serializer);
         return null;
     }
 
@@ -441,10 +415,9 @@ class Queue implements QueueInterface
     }
 
     /**
-     * Initialize serializer
+     * Initialize serializer.
      *
-     * @param  string $serializer
-     * @return void
+     * @param string $serializer
      */
     private function initSerializer(): void
     {

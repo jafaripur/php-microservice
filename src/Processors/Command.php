@@ -15,28 +15,26 @@ use Araz\MicroService\Queue;
 abstract class Command extends Processor
 {
     /**
-     * Process received command
+     * Process received command.
      *
-     * @param  Request $request received data
+     * @param Request $request received data
+     *
      * @return Response data which send to sender
      */
     abstract public function execute(Request $request): Response;
 
     /**
-     * Command name to run
-     *
-     * @return string
+     * Command name to run.
      */
     abstract public function getJobName(): string;
 
     /**
-     * Run after the message is command and when replied back command response
+     * Run after the message is command and when replied back command response.
      *
-     * @param  string|null       $messageId   message id
-     * @param  string|null       $replyId   message id of reply message
-     * @param  string|null       $correlationId   correlation id of message
-     * @param  string            $status ack, reject, requeue
-     * @return void
+     * @param null|string $messageId     message id
+     * @param null|string $replyId       message id of reply message
+     * @param null|string $correlationId correlation id of message
+     * @param string      $status        ack, reject, requeue
      */
     public function afterMessageReplytoCommand(?string $messageId, ?string $replyId, ?string $correlationId, string $status): void
     {

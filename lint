@@ -4,9 +4,9 @@ php ./vendor/bin/php-cs-fixer fix --show-progress=dots
 
 php ./vendor/bin/phplint
 
-php ./vendor/bin/psalm
+php ./vendor/bin/psalm #--show-info=true
 
-php vendor/bin/phpunit --testsuit Unit
+#php vendor/bin/phpunit --testsuit Unit
 #docker-compose up --build --exit-code-from micro micro
 
 #docker run --rm -v $PWD:/code montealegreluis/phuml phuml:diagram -r -o -a -b -e classic -p dot src diagram.png

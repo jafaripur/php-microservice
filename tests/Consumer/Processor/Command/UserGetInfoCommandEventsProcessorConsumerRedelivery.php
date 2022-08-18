@@ -8,8 +8,8 @@ use Araz\MicroService\Processor;
 use Araz\MicroService\Processors\Command;
 use Araz\MicroService\Processors\RequestResponse\Request;
 use Araz\MicroService\Processors\RequestResponse\Response;
-//use Interop\Amqp\AmqpConsumer;
-//use Interop\Amqp\Impl\AmqpMessage;
+// use Interop\Amqp\AmqpConsumer;
+// use Interop\Amqp\Impl\AmqpMessage;
 use Interop\Queue\Consumer as AmqpConsumer;
 use Interop\Queue\Message as AmqpMessage;
 

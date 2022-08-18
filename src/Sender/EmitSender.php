@@ -16,36 +16,31 @@ final class EmitSender extends SenderBase
     private ?int $delay = null;
 
     /**
-     * Topic name
-     *
-     * @param  string $name
-     * @return self
+     * Topic name.
      */
     public function setTopicName(string $name): self
     {
         $new = clone $this;
         $new->topicName = $name;
+
         return $new;
     }
 
     /**
-     * Set payload data
-     *
-     * @param  mixed $data
-     * @return self
+     * Set payload data.
      */
     public function setData(mixed $data): self
     {
         $new = clone $this;
         $new->data = $data;
+
         return $new;
     }
 
     /**
-     * Add delay
+     * Add delay.
      *
-     * @param  integer $delay as millisecond
-     * @return self
+     * @param int $delay as millisecond
      */
     public function setDelay(int $delay): self
     {
@@ -55,18 +50,19 @@ final class EmitSender extends SenderBase
 
         $new = clone $this;
         $new->delay = $delay;
+
         return $new;
     }
 
     /**
-     * Emit message to all consumer which subscribe to specific topic name
+     * Emit message to all consumer which subscribe to specific topic name.
      *
-     * @return string|null         message id
+     * @return null|string message id
      */
     public function send(): ?string
     {
         if (empty(trim($this->topicName))) {
-            throw new \LogicException("Topic name is required!");
+            throw new \LogicException('Topic name is required!');
         }
 
         $topic = $this->queue->createTopic($this->topicName);
@@ -88,7 +84,8 @@ final class EmitSender extends SenderBase
 
         $this->queue->createProducer()
             ->setDeliveryDelay($this->delay ?: null)
-            ->send($topic, $message);
+            ->send($topic, $message)
+        ;
 
         return $message->getMessageId();
     }

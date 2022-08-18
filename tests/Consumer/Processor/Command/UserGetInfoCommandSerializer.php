@@ -15,6 +15,7 @@ final class UserGetInfoCommandSerializer extends Command
     public function execute(Request $request): Response
     {
         $this->getQueue()->setDefaultSerializer(PhpSerializer::class);
+
         return new Response($request->getBody());
     }
 
