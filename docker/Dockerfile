@@ -8,6 +8,8 @@ RUN apk update && apk upgrade && echo "UTC" > /etc/timezone \
 	libmcrypt-dev rabbitmq-c-dev ${PHPIZE_DEPS} \
 	&& docker-php-source extract \
 	&& docker-php-ext-install bcmath pcntl \
+	&& pecl install igbinary \
+	&& pecl install msgpack \
 	&& pecl install amqp \
 	&& docker-php-ext-enable igbinary msgpack amqp \
 	&& docker-php-source delete \
